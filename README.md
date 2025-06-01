@@ -15,7 +15,7 @@
 ```mermaid
 flowchart LR
   subgraph Repo
-    A[uniffi-polkadot-lib (Rust + UDL)] 
+    A[uniffi-polkadot-lib Rust + UDL] 
     A -->|CI Trigger on Push| B[CI Pipeline]
   end
 
@@ -31,8 +31,8 @@ flowchart LR
   end
 
   subgraph Consumers
-    D1 --> E1[iOS App (SwiftUI) imports Swift Package]
-    D2 --> E2[Android App (Compose) imports Maven Artifact]
+    D1 --> E1[iOS App -SwiftUI- imports Swift Package]
+    D2 --> E2[Android App -Compose- imports Maven Artifact]
     D3 --> E3[Python Script imports via PyPI]
     D4 --> E4[Node/Browser App imports via npm]
   end
@@ -41,3 +41,8 @@ flowchart LR
   style CI_Pipeline fill:#f0f0f0,stroke:#bbb
   style Consumers fill:#f9f9f9,stroke:#ccc
   ```
+---
+
+## Status
+
+This is a *work-in-progress*, please visit [polkabind.dev](https://polkabind.dev) for a summary of the expected roadmap.
