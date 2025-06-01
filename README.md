@@ -40,3 +40,4 @@ flowchart LR
   style Repo fill:#f9f9f9,stroke:#ccc
   style CI_Pipeline fill:#f0f0f0,stroke:#bbb
   style Consumers fill:#f9f9f9,stroke:#ccc
+  ```
