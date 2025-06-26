@@ -65,72 +65,7 @@ generate() {
   fi
 }
 
-# android_steps() {
-#   echo "🤖 Cross-compiling Rust for Android ABIs…"
-#   cargo ndk \
-#     --output-dir "$ANDROID_APP/src/main/jniLibs" \
-#     --target aarch64-linux-android \
-#     --target armv7-linux-androideabi \
-#     --target i686-linux-android \
-#     --target x86_64-linux-android \
-#     build -p speem --release
-
-#   echo "🚀 Building & installing Android…"
-#   ( cd "$ROOT/android" && chmod +x gradlew && ./gradlew installDebug )
-# }
-
-# ios_steps() {
-#   echo "📦 Cross-compiling static Speem library for iOS…"
-
-#   DEVICE="aarch64-apple-ios"
-#   SIM="aarch64-apple-ios-sim"
-
-#   for t in $DEVICE $SIM; do
-#     echo "   • cargo build --release --target $t"
-#     cargo build --manifest-path "$CORE_DIR/Cargo.toml" --release --target "$t"
-#   done
-
-#   DEV_LIB="$ROOT/target/$DEVICE/release/libspeem.a"
-#   SIM_LIB="$ROOT/target/$SIM/release/libspeem.a"
-#   for f in $DEV_LIB $SIM_LIB; do
-#     [[ -f "$f" ]] || { echo "❌ Missing $f"; exit 1; }
-#   done
-
-#   mkdir -p "$SWIFT_BINDINGS_DIR/include"
-#   cp "$SWIFT_BINDINGS_DIR"/speemFFI.h \
-#      "$SWIFT_BINDINGS_DIR"/speemFFI.modulemap \
-#      "$SWIFT_BINDINGS_DIR/include/"
-#   mv "$SWIFT_BINDINGS_DIR/include/speemFFI.modulemap" \
-#      "$SWIFT_BINDINGS_DIR/include/module.modulemap"
-
-#   XCFRAMEWORK="$SWIFT_BINDINGS_DIR/speem.xcframework"
-#   echo "   • xcodebuild -create-xcframework → $XCFRAMEWORK"
-#   xcodebuild -create-xcframework \
-#     -library "$DEV_LIB" -headers "$SWIFT_BINDINGS_DIR/include" \
-#     -library "$SIM_LIB" -headers "$SWIFT_BINDINGS_DIR/include" \
-#     -output "$XCFRAMEWORK"
-
-#   echo "📦 Building & launching iOS app…"
-#   SIM_NAME="iPhone 16"
-#   if ! xcrun simctl list devices booted | grep -q Booted; then
-#     open -a Simulator; sleep 1
-#     xcrun simctl boot "$SIM_NAME"
-#     xcrun simctl bootstatus "$SIM_NAME" --wait
-#   fi
-#   xcodebuild \
-#     -project "$ROOT/ios/speem.xcodeproj" \
-#     -scheme speem \
-#     -sdk iphonesimulator \
-#     -destination "platform=iOS Simulator,name=$SIM_NAME" \
-#     -derivedDataPath "$ROOT/ios/build" build
-#   xcrun simctl install booted "$ROOT/ios/build/Build/Products/Debug-iphonesimulator/speem.app"
-#   xcrun simctl launch booted com.wassimans.speem
-# }
-
 case "$cmd" in
   bindings)   generate ;;
-  # android) android_steps ;;
-  # ios)    ios_steps ;;
-  # all)    rust_steps && android_steps && ios_steps ;;
   *) echo "Usage: $0 [generate]" && exit 1 ;;
 esac
