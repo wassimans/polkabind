@@ -1,7 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
-    "core",
+    "polkabind-core",
+    "polkabind-bindgen"
 ]
 
 [workspace.dependencies]
