@@ -1,0 +1,16 @@
+[package]
+name = "polkabind-bindgen"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+authors = [ "Wassim Mansouri <wassim@polkabind.dev>" ]
+
+[dependencies]
+polkabind-core = { path = "../polkabind-core" }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+
+[build-dependencies]
+uniffi_bindgen = "0.29.2"
