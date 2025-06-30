@@ -1,4 +1,4 @@
-# uniffi-polkadot-lib
+# Polkabind
 
 > **Work in Progress**: A Rust → UniFFI bridge for Polkadot, automatically publishing native bindings for Swift, Kotlin, Python, JavaScript, and more.
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-`uniffi-polkadot-lib` is a Rust-based SDK that exposes Polkadot functionality (key management, balance queries, extrinsic building, signing, RPC, event subscriptions) by exposing the Subxt library through UniFFI. When the Polkabind library updates (after an upstream update on Subxt for example), a CI pipeline automatically generates and publishes native language packages—so iOS, Android, Python, JavaScript, and other clients can consume the same Rust logic without writing custom FFI.
+`Polkabind` is a Rust-based SDK that exposes Polkadot functionality (key management, balance queries, extrinsic building, signing, RPC, event subscriptions) by exposing the Subxt library through UniFFI. When the Polkabind library updates (after an upstream update on Subxt for example), a CI pipeline automatically generates and publishes native language packages—so iOS, Android, Python, JavaScript, and other clients can consume the same Rust logic without writing custom FFI.
 
 ---
 
