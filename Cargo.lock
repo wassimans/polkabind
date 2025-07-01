@@ -1933,7 +1933,7 @@ name = "polkabind-bindgen"
 version = "0.1.0"
 dependencies = [
  "polkabind-core",
- "uniffi_bindgen",
+ "uniffi",
 ]
 
 [[package]]
