@@ -920,10 +920,10 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_polkabind_checksum_func_add() != 27572.toShort()) {
+    if (lib.uniffi_polkabind_checksum_func_add() != 45476.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_polkabind_checksum_func_greet() != 4320.toShort()) {
+    if (lib.uniffi_polkabind_checksum_func_greet() != 1512.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1248,17 +1248,11 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 //
 
 
-/**
- * You can also export custom structs, enums, etc.
- */
 public interface PointInterface {
     
     companion object
 }
 
-/**
- * You can also export custom structs, enums, etc.
- */
 open class Point: Disposable, AutoCloseable, PointInterface
 {
 
@@ -1375,10 +1369,7 @@ public object FfiConverterTypePoint: FfiConverter<Point, Pointer> {
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
     }
-}
-        /**
-         * Another example: add two integers.
-         */ fun `add`(`a`: kotlin.Int, `b`: kotlin.Int): kotlin.Int {
+} fun `add`(`a`: kotlin.Int, `b`: kotlin.Int): kotlin.Int {
             return FfiConverterInt.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_polkabind_fn_func_add(
@@ -1387,11 +1378,7 @@ public object FfiConverterTypePoint: FfiConverter<Point, Pointer> {
     )
     }
     
-
-        /**
-         * Everything inside this `mod` is now part of your FFI interface.
-         * A tiny example function we’ll call from Swift/Kotlin.
-         */ fun `greet`(`name`: kotlin.String): kotlin.String {
+ fun `greet`(`name`: kotlin.String): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_polkabind_fn_func_greet(

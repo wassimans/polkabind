@@ -457,15 +457,9 @@ fileprivate struct FfiConverterString: FfiConverter {
 
 
 
-/**
- * You can also export custom structs, enums, etc.
- */
 public protocol PointProtocol: AnyObject, Sendable {
     
 }
-/**
- * You can also export custom structs, enums, etc.
- */
 open class Point: PointProtocol, @unchecked Sendable {
     fileprivate let pointer: UnsafeMutableRawPointer!
 
@@ -572,9 +566,6 @@ public func FfiConverterTypePoint_lower(_ value: Point) -> UnsafeMutableRawPoint
 }
 
 
-/**
- * Another example: add two integers.
- */
 public func add(a: Int32, b: Int32) -> Int32  {
     return try!  FfiConverterInt32.lift(try! rustCall() {
     uniffi_polkabind_fn_func_add(
@@ -583,10 +574,6 @@ public func add(a: Int32, b: Int32) -> Int32  {
     )
 })
 }
-/**
- * Everything inside this `mod` is now part of your FFI interface.
- * A tiny example function we’ll call from Swift/Kotlin.
- */
 public func greet(name: String) -> String  {
     return try!  FfiConverterString.lift(try! rustCall() {
     uniffi_polkabind_fn_func_greet(
@@ -610,10 +597,10 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_polkabind_checksum_func_add() != 27572) {
+    if (uniffi_polkabind_checksum_func_add() != 45476) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_polkabind_checksum_func_greet() != 4320) {
+    if (uniffi_polkabind_checksum_func_greet() != 1512) {
         return InitializationResult.apiChecksumMismatch
     }
 
