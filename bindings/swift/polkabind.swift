@@ -400,15 +400,15 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-fileprivate struct FfiConverterInt32: FfiConverterPrimitive {
-    typealias FfiType = Int32
-    typealias SwiftType = Int32
+fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
+    typealias FfiType = UInt64
+    typealias SwiftType = UInt64
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Int32 {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt64 {
         return try lift(readInt(&buf))
     }
 
-    public static func write(_ value: Int32, into buf: inout [UInt8]) {
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
         writeInt(&buf, lower(value))
     }
 }
@@ -455,131 +455,96 @@ fileprivate struct FfiConverterString: FfiConverter {
 }
 
 
-
-
-public protocol PointProtocol: AnyObject, Sendable {
-    
-}
-open class Point: PointProtocol, @unchecked Sendable {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    // This constructor can be used to instantiate a fake object.
-    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    //
-    // - Warning:
-    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_polkabind_fn_clone_point(self.pointer, $0) }
-    }
-    // No primary constructor declared for this class.
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_polkabind_fn_free_point(pointer, $0) }
-    }
+public enum TransferError: Swift.Error {
 
     
-
     
-
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypePoint: FfiConverter {
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = Point
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Point {
-        return Point(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: Point) -> UnsafeMutableRawPointer {
-        return value.uniffiClonePointer()
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Point {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: Point, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypePoint_lift(_ pointer: UnsafeMutableRawPointer) throws -> Point {
-    return try FfiConverterTypePoint.lift(pointer)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypePoint_lower(_ value: Point) -> UnsafeMutableRawPointer {
-    return FfiConverterTypePoint.lower(value)
-}
-
-
-public func add(a: Int32, b: Int32) -> Int32  {
-    return try!  FfiConverterInt32.lift(try! rustCall() {
-    uniffi_polkabind_fn_func_add(
-        FfiConverterInt32.lower(a),
-        FfiConverterInt32.lower(b),$0
+    case Decode(String
     )
-})
-}
-public func greet(name: String) -> String  {
-    return try!  FfiConverterString.lift(try! rustCall() {
-    uniffi_polkabind_fn_func_greet(
-        FfiConverterString.lower(name),$0
+    case Subxt(String
     )
-})
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeTransferError: FfiConverterRustBuffer {
+    typealias SwiftType = TransferError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TransferError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .Decode(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 2: return .Subxt(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: TransferError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case let .Decode(v1):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .Subxt(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTransferError_lift(_ buf: RustBuffer) throws -> TransferError {
+    return try FfiConverterTypeTransferError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTransferError_lower(_ value: TransferError) -> RustBuffer {
+    return FfiConverterTypeTransferError.lower(value)
+}
+
+
+extension TransferError: Equatable, Hashable {}
+
+
+
+
+extension TransferError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
+
+
+public func doTransfer(destHex: String, amount: UInt64)throws   {try rustCallWithError(FfiConverterTypeTransferError_lift) {
+    uniffi_polkabind_fn_func_do_transfer(
+        FfiConverterString.lower(destHex),
+        FfiConverterUInt64.lower(amount),$0
+    )
+}
 }
 
 private enum InitializationResult {
@@ -597,10 +562,7 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_polkabind_checksum_func_add() != 45476) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_polkabind_checksum_func_greet() != 1512) {
+    if (uniffi_polkabind_checksum_func_do_transfer() != 19919) {
         return InitializationResult.apiChecksumMismatch
     }
 

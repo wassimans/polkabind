@@ -5,7 +5,7 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-crate-type = ["cdylib", "staticlib"]
+crate-type = ["cdylib", "staticlib", "rlib"]
 name = "polkabind"
 
 [dependencies]
@@ -15,5 +15,5 @@ subxt = { workspace = true, features = ["unstable-light-client"] }
 subxt-signer = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-uniffi = { workspace = true, features = ["build", "cli"] }
+uniffi = { workspace = true, features = ["cli"] }
 uniffi_macros = { workspace = true }
