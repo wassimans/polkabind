@@ -251,24 +251,9 @@ typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureStr
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_CLONE_POINT
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_CLONE_POINT
-void*_Nonnull uniffi_polkabind_fn_clone_point(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
-);
-#endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FREE_POINT
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FREE_POINT
-void uniffi_polkabind_fn_free_point(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
-);
-#endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_ADD
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_ADD
-int32_t uniffi_polkabind_fn_func_add(int32_t a, int32_t b, RustCallStatus *_Nonnull out_status
-);
-#endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_GREET
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_GREET
-RustBuffer uniffi_polkabind_fn_func_greet(RustBuffer name, RustCallStatus *_Nonnull out_status
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_DO_TRANSFER
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_DO_TRANSFER
+void uniffi_polkabind_fn_func_do_transfer(RustBuffer dest_hex, uint64_t amount, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_FFI_POLKABIND_RUSTBUFFER_ALLOC
@@ -551,15 +536,9 @@ void ffi_polkabind_rust_future_free_void(uint64_t handle
 void ffi_polkabind_rust_future_complete_void(uint64_t handle, RustCallStatus *_Nonnull out_status
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_ADD
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_ADD
-uint16_t uniffi_polkabind_checksum_func_add(void
-    
-);
-#endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_GREET
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_GREET
-uint16_t uniffi_polkabind_checksum_func_greet(void
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_DO_TRANSFER
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_DO_TRANSFER
+uint16_t uniffi_polkabind_checksum_func_do_transfer(void
     
 );
 #endif
