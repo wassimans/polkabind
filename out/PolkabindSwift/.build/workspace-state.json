@@ -1,0 +1,27 @@
+{
+  "object" : {
+    "artifacts" : [
+      {
+        "kind" : "xcframework",
+        "packageRef" : {
+          "identity" : "polkabindswift",
+          "kind" : "root",
+          "location" : "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift",
+          "name" : "PolkabindSwift"
+        },
+        "path" : "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Polkabind.xcframework",
+        "source" : {
+          "type" : "local"
+        },
+        "targetName" : "PolkabindRust"
+      }
+    ],
+    "dependencies" : [
+
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}
