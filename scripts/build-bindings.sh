@@ -52,9 +52,9 @@ generate() {
   SWIFT_FILE="$SWIFT_BINDINGS_DIR/polkabind.swift"
   if [[ -f "$SWIFT_FILE" ]]; then
     # 1) Prepend the @_implementationOnly import
-    sed -i '' '1s%^%@_implementationOnly import polkabindFFI\n%' "$SWIFT_FILE"
-    # 2) Remove any stray `import polkabindFFI`
-    sed -i '' '/^import polkabindFFI$/d' "$SWIFT_FILE"
+    sed -i '' '1s%^%@_implementationOnly import PolkabindFFI\n%' "$SWIFT_FILE"
+    # 2) Remove any stray `import PolkabindFFI`
+    sed -i '' '/^import PolkabindFFI$/d' "$SWIFT_FILE"
   fi
 }
 
