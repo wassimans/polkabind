@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CF2F6D742E20182E00B07C20 /* Polkabind in Frameworks */ = {isa = PBXBuildFile; productRef = CF2F6D732E20182E00B07C20 /* Polkabind */; };
+		CF2F6D8A2E2034DF00B07C20 /* Polkabind in Frameworks */ = {isa = PBXBuildFile; productRef = CF2F6D892E2034DF00B07C20 /* Polkabind */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF2F6D742E20182E00B07C20 /* Polkabind in Frameworks */,
+				CF2F6D8A2E2034DF00B07C20 /* Polkabind in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +83,7 @@
 				CF2F6D472E20075200B07C20 /* PolkabindExample */,
 				CF2F6D552E20075400B07C20 /* PolkabindExampleTests */,
 				CF2F6D5F2E20075400B07C20 /* PolkabindExampleUITests */,
+				CF2F6D7F2E202ED200B07C20 /* Frameworks */,
 				CF2F6D462E20075200B07C20 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -95,6 +96,13 @@
 				CF2F6D5C2E20075400B07C20 /* PolkabindExampleUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CF2F6D7F2E202ED200B07C20 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,7 +125,7 @@
 			);
 			name = PolkabindExample;
 			packageProductDependencies = (
-				CF2F6D732E20182E00B07C20 /* Polkabind */,
+				CF2F6D892E2034DF00B07C20 /* Polkabind */,
 			);
 			productName = PolkabindExample;
 			productReference = CF2F6D452E20075200B07C20 /* PolkabindExample.app */;
@@ -202,7 +210,7 @@
 			mainGroup = CF2F6D3C2E20075200B07C20;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CF2F6D722E20182E00B07C20 /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */,
+				CF2F6D882E2034DF00B07C20 /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CF2F6D462E20075200B07C20 /* Products */;
@@ -561,14 +569,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CF2F6D722E20182E00B07C20 /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */ = {
+		CF2F6D882E2034DF00B07C20 /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../../../../out/polkabind-swift-pkg";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CF2F6D732E20182E00B07C20 /* Polkabind */ = {
+		CF2F6D892E2034DF00B07C20 /* Polkabind */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Polkabind;
 		};
