@@ -30,12 +30,49 @@ echo "🍎 Generating Swift bindings .."
 
 echo "✅ Swift bindings are in $SWIFT_DIR"
 
+# ─── Force‐import the FFI module so RustBuffer, ForeignBytes, etc. are available ───
+SWIFT_FILE="$SWIFT_DIR/polkabind.swift"
+if [[ -f "$SWIFT_FILE" ]]; then
+  # Insert the FFI import immediately after Foundation
+  sed -i '' \
+    's|^import Foundation|import Foundation\n@_implementationOnly import polkabindFFI|' \
+    "$SWIFT_FILE"
+fi
+
+echo "🛠️ Creating framework bundles .."
+TMP="$ROOT/out/PolkabindSwift/tmp-frameworks"
+rm -rf "$TMP"
+mkdir -p "$TMP/device" "$TMP/simulator"
+
+# 1) Device slice
+DEVICE_LIB=target/aarch64-apple-ios/release/libpolkabind.dylib
+DEVICE_FWK="$TMP/device/polkabindFFI.framework"
+mkdir -p "$DEVICE_FWK"/{Headers,Modules}
+cp "$DEVICE_LIB" "$DEVICE_FWK/polkabindFFI"                              # binary must be named "polkabindFFI"
+cp "$SWIFT_DIR/polkabindFFI.h"  "$DEVICE_FWK/Headers/"                  # header
+cp "$SWIFT_DIR/polkabindFFI.modulemap" "$DEVICE_FWK/Modules/module.modulemap"
+# patch modulemap for framework consumption
+sed -i '' \
+  's/^module polkabindFFI/framework module polkabindFFI/' \
+  "$DEVICE_FWK/Modules/module.modulemap"
+
+# 2) Simulator slice
+SIM_LIB=target/x86_64-apple-ios/release/libpolkabind.dylib
+SIM_FWK="$TMP/simulator/polkabindFFI.framework"
+mkdir -p "$SIM_FWK"/{Headers,Modules}
+cp "$SIM_LIB"   "$SIM_FWK/polkabindFFI"
+cp "$SWIFT_DIR/polkabindFFI.h"  "$SIM_FWK/Headers/"
+cp "$SWIFT_DIR/polkabindFFI.modulemap" "$SIM_FWK/Modules/module.modulemap"
+# patch modulemap for framework consumption
+sed -i '' \
+  's/^module polkabindFFI/framework module polkabindFFI/' \
+  "$SIM_FWK/Modules/module.modulemap"
+
+echo "✅ Done Creating framework bundles."
+
 echo "🛠️ Creating the XCFramework .."
 
-DEVICE_LIB=target/aarch64-apple-ios/release/libpolkabind.dylib
 cargo build --release --target aarch64-apple-ios
-
-SIM_LIB=target/x86_64-apple-ios/release/libpolkabind.dylib
 cargo build --release --target x86_64-apple-ios
 
 echo "🧹 Cleaning old XCFramework .."
@@ -45,28 +82,25 @@ XCF_DIR="$ROOT/out/PolkabindSwift/polkabindFFI.xcframework"
 rm -rf "$XCF_DIR"
 
 xcodebuild -create-xcframework \
-\
--library "$DEVICE_LIB" \
--headers bindings/swift \
-\
--library "$SIM_LIB" \
--headers bindings/swift \
-\
--output out/PolkabindSwift/polkabindFFI.xcframework
+  -framework "$TMP/device/polkabindFFI.framework" \
+  -framework "$TMP/simulator/polkabindFFI.framework" \
+  -output out/PolkabindSwift/polkabindFFI.xcframework
 
-for arch in ios-arm64 ios-x86_64-simulator; do
-  HDR="$XCF_DIR/$arch/Headers"
-  # 1) Rename the module‐map so SwiftPM will see *any* modulemap at all
-  mv "$HDR/polkabindFFI.modulemap" "$HDR/module.modulemap"
-  # 2) Patch its contents to declare the module UniFFI’s Swift is expecting
-  #sed -i '' 's/module polkabindFFI/module PolkabindFFI/' "$HDR/module.modulemap"
-done
+echo "🛠 Validating iOS integration with xcodebuild …"
 
-echo "🛠 Building Swift XCFramework .."
+# Copy the generated Swift glue into the package
+cp "$SWIFT_DIR/polkabind.swift" "$XCF_ROOT_DIR/Sources/Polkabind"
 
 cd "$XCF_ROOT_DIR"
-rm -rf .build
-cp "$SWIFT_DIR/polkabind.swift" "$XCF_ROOT_DIR/Sources/Polkabind"
-swift build
+# Clean any leftover builds
+rm -rf ~/Library/Developer/Xcode/DerivedData/Polkabind-*
 
-echo "✅ Done building Swift XCFramework."
+# Build the iOS simulator slice to make sure everything links
+xcodebuild \
+  -scheme Polkabind \
+  -sdk iphonesimulator \
+  -destination "platform=iOS Simulator,name=iPhone 16" \
+  BUILD_DIR=build \
+  clean build
+
+echo "✅ XCFramework is iOS-ready."

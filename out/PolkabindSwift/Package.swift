@@ -3,14 +3,9 @@ import PackageDescription
 
 let package = Package(
   name: "Polkabind",
-  platforms: [
-    .iOS(.v13), .macOS(.v12),
-  ],
+  platforms: [.iOS(.v13)],
   products: [
-    .library(
-      name: "Polkabind",
-      targets: ["Polkabind"]
-    ),
+    .library(name: "Polkabind", targets: ["Polkabind"]),
   ],
   targets: [
     .binaryTarget(
