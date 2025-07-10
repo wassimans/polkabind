@@ -9,10 +9,10 @@ targets:
   "test": ["<Polkabind-arm64-apple-macosx15.0-debug.module>"]
 default: "main"
 nodes:
-  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Polkabind.xcframework/":
+  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/":
     is-directory-structure: true
     content-exclusion-patterns: [".git",".build"]
-  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/":
+  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/polkabindFFI.xcframework/":
     is-directory-structure: true
     content-exclusion-patterns: [".git",".build"]
 commands:
@@ -43,7 +43,7 @@ commands:
 
   "PackageStructure":
     tool: package-structure-tool
-    inputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Polkabind.xcframework/","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Package.swift","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Package.resolved"]
+    inputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/polkabindFFI.xcframework/","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Package.swift","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Package.resolved"]
     outputs: ["<PackageStructure>"]
     description: "Planning build"
     allow-missing-inputs: true
