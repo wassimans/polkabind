@@ -1,106 +1,120 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ——— Paths ———
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT_DIR="$ROOT/bindings"
-
+BINDINGS="$ROOT/bindings/swift"
+OUT_XC="$ROOT/out/PolkabindSwift"
+OUT_PKG="$ROOT/out/polkabind-swift-pkg"
 UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
+RUST_DYLIB="$ROOT/target/release/libpolkabind.dylib"
 
-echo "🛠️  Building host dylib .."
-# this will place libpolkabind.dylib in $ROOT/target/release
-cargo build --manifest-path "$ROOT/Cargo.toml" --release
+# ——— 1) Build host dylib ———
+echo "🛠️  Building Rust dylib…"
+cargo build --release --manifest-path "$ROOT/Cargo.toml"
+[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing $RUST_DYLIB"; exit 1; }
 
-DYLIB="$ROOT/target/release/libpolkabind.dylib"
-if [[ ! -f "$DYLIB" ]]; then
-  echo "❌ could not find $DYLIB"
-  exit 1
-fi
-
-SWIFT_DIR="$OUT_DIR/swift"
-
-echo "🧹 Cleaning old bindings .."
-rm -rf "$SWIFT_DIR"
-mkdir -p "$SWIFT_DIR"
-
-echo "🍎 Generating Swift bindings .."
+# ——— 2) Generate Swift glue ———
+echo "🧹 Generating Swift bindings…"
+rm -rf "$BINDINGS"
+mkdir -p "$BINDINGS"
 "$UNIFFI_BIN" generate \
-  --library "$DYLIB" \
+  --library "$RUST_DYLIB" \
   --language swift \
-  --out-dir "$SWIFT_DIR" \
+  --out-dir "$BINDINGS"
 
-echo "✅ Swift bindings are in $SWIFT_DIR"
+GLUE="$BINDINGS/polkabind.swift"
+[[ -f "$GLUE" ]] || { echo "❌ UniFFI didn’t emit polkabind.swift"; exit 1; }
 
-# ─── Force‐import the FFI module so RustBuffer, ForeignBytes, etc. are available ───
-SWIFT_FILE="$SWIFT_DIR/polkabind.swift"
-if [[ -f "$SWIFT_FILE" ]]; then
-  # Insert the FFI import immediately after Foundation
-  sed -i '' \
-    's|^import Foundation|import Foundation\n@_implementationOnly import polkabindFFI|' \
-    "$SWIFT_FILE"
-fi
-
-echo "🛠️ Creating framework bundles .."
-TMP="$ROOT/out/PolkabindSwift/tmp-frameworks"
-rm -rf "$TMP"
-mkdir -p "$TMP/device" "$TMP/simulator"
-
-# 1) Device slice
-DEVICE_LIB=target/aarch64-apple-ios/release/libpolkabind.dylib
-DEVICE_FWK="$TMP/device/polkabindFFI.framework"
-mkdir -p "$DEVICE_FWK"/{Headers,Modules}
-cp "$DEVICE_LIB" "$DEVICE_FWK/polkabindFFI"                              # binary must be named "polkabindFFI"
-cp "$SWIFT_DIR/polkabindFFI.h"  "$DEVICE_FWK/Headers/"                  # header
-cp "$SWIFT_DIR/polkabindFFI.modulemap" "$DEVICE_FWK/Modules/module.modulemap"
-# patch modulemap for framework consumption
+# patch for implementation-only import
 sed -i '' \
-  's/^module polkabindFFI/framework module polkabindFFI/' \
-  "$DEVICE_FWK/Modules/module.modulemap"
+  's|^import Foundation|import Foundation\n@_implementationOnly import polkabindFFI|' \
+  "$GLUE"
 
-# 2) Simulator slice
-SIM_LIB=target/x86_64-apple-ios/release/libpolkabind.dylib
-SIM_FWK="$TMP/simulator/polkabindFFI.framework"
-mkdir -p "$SIM_FWK"/{Headers,Modules}
-cp "$SIM_LIB"   "$SIM_FWK/polkabindFFI"
-cp "$SWIFT_DIR/polkabindFFI.h"  "$SIM_FWK/Headers/"
-cp "$SWIFT_DIR/polkabindFFI.modulemap" "$SIM_FWK/Modules/module.modulemap"
-# patch modulemap for framework consumption
-sed -i '' \
-  's/^module polkabindFFI/framework module polkabindFFI/' \
-  "$SIM_FWK/Modules/module.modulemap"
-
-echo "✅ Done Creating framework bundles."
-
-echo "🛠️ Creating the XCFramework .."
-
+# ——— 3) Build iOS slices (arm64 only) ———
+echo "🐝 Compiling iOS + Simulator arm64 slices…"
 cargo build --release --target aarch64-apple-ios
-cargo build --release --target x86_64-apple-ios
+cargo build --release --target aarch64-apple-ios-sim
 
-echo "🧹 Cleaning old XCFramework .."
+# ——— 4) Create tiny .framework bundles ———
+echo "📂 Assembling .framework bundles…"
+rm -rf "$OUT_XC/tmp-fwks"
+mkdir -p "$OUT_XC/tmp-fwks/device" "$OUT_XC/tmp-fwks/simulator"
 
-XCF_ROOT_DIR="$ROOT/out/PolkabindSwift"
-XCF_DIR="$ROOT/out/PolkabindSwift/polkabindFFI.xcframework"
-rm -rf "$XCF_DIR"
+for slice in device simulator; do
+  if [[ $slice == device ]]; then
+    SRC="$ROOT/target/aarch64-apple-ios/release/libpolkabind.dylib"
+  else
+    SRC="$ROOT/target/aarch64-apple-ios-sim/release/libpolkabind.dylib"
+  fi
 
+  FWK="$OUT_XC/tmp-fwks/$slice/polkabindFFI.framework"
+  mkdir -p "$FWK"/{Headers,Modules}
+
+  # copy in the minimal Info.plist
+  cp "$ROOT/scripts/FrameworkInfo.plist" "$FWK/Info.plist"
+
+  # rename the dylib to the framework’s binary name
+  cp "$SRC" "$FWK/polkabindFFI"
+
+  # copy UniFFI headers + modulemap
+  cp "$BINDINGS/polkabindFFI.h"       "$FWK/Headers/"
+  cp "$BINDINGS/polkabindFFI.modulemap" "$FWK/Modules/module.modulemap"
+
+  # patch it to be a framework module
+  sed -i '' 's/^module /framework module /' "$FWK/Modules/module.modulemap"
+done
+
+# ——— 5) Make the .xcframework ———
+echo "📦 Creating polkabindFFI.xcframework…"
+rm -rf "$OUT_XC/polkabindFFI.xcframework"
 xcodebuild -create-xcframework \
-  -framework "$TMP/device/polkabindFFI.framework" \
-  -framework "$TMP/simulator/polkabindFFI.framework" \
-  -output out/PolkabindSwift/polkabindFFI.xcframework
+  -framework "$OUT_XC/tmp-fwks/device/polkabindFFI.framework" \
+  -framework "$OUT_XC/tmp-fwks/simulator/polkabindFFI.framework" \
+  -output "$OUT_XC/polkabindFFI.xcframework"
 
-echo "🛠 Validating iOS integration with xcodebuild …"
+# ——— 6) Drop in Swift glue & Package.swift ———
+echo "✂️  Laying out SwiftPM package…"
+mkdir -p "$OUT_XC/Sources/Polkabind"
+cp "$GLUE" "$OUT_XC/Sources/Polkabind/"
 
-# Copy the generated Swift glue into the package
-cp "$SWIFT_DIR/polkabind.swift" "$XCF_ROOT_DIR/Sources/Polkabind"
+cat > "$OUT_XC/Package.swift" <<'EOF'
+// swift-tools-version:5.7
+import PackageDescription
 
-cd "$XCF_ROOT_DIR"
-# Clean any leftover builds
-rm -rf ~/Library/Developer/Xcode/DerivedData/Polkabind-*
+let package = Package(
+  name: "Polkabind",
+  platforms: [.iOS(.v13)],
+  products: [
+    .library(name: "Polkabind", targets: ["Polkabind"]),
+  ],
+  targets: [
+    .binaryTarget(name: "polkabindFFI", path: "polkabindFFI.xcframework"),
+    .target(name: "Polkabind", dependencies: ["polkabindFFI"]),
+  ]
+)
+EOF
 
-# Build the iOS simulator slice to make sure everything links
-xcodebuild \
+# ——— 7) Validate with xcodebuild ———
+echo "🔗 Validating integration…"
+pushd "$OUT_XC" >/dev/null
+xcodebuild clean build \
   -scheme Polkabind \
   -sdk iphonesimulator \
   -destination "platform=iOS Simulator,name=iPhone 16" \
-  BUILD_DIR=build \
-  clean build
+  BUILD_DIR="build"
+popd >/dev/null
 
-echo "✅ XCFramework is iOS-ready."
+# ——— 8) Produce minimal package for release ———
+echo "🚚 Bundling minimal Swift package…"
+rm -rf "$OUT_PKG"
+mkdir -p "$OUT_PKG/Sources/Polkabind"
+cp "$ROOT/LICENSE"      "$OUT_PKG/"
+cp "$ROOT/README.md"   "$OUT_PKG/"
+cp "$OUT_XC/Package.swift"           "$OUT_PKG/"
+cp -R "$OUT_XC/polkabindFFI.xcframework" "$OUT_PKG/"
+cp "$GLUE"             "$OUT_PKG/Sources/Polkabind/"
+
+echo "✅ Done!
+ • XCFramework → $OUT_XC/polkabindFFI.xcframework
+ • Swift Package → $OUT_PKG"
