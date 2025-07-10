@@ -1,0 +1,50 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "PackageStructure": ["<PackageStructure>"]
+  "Polkabind-arm64-apple-macosx15.0-debug.module": ["<Polkabind-arm64-apple-macosx15.0-debug.module>"]
+  "main": ["<Polkabind-arm64-apple-macosx15.0-debug.module>"]
+  "test": ["<Polkabind-arm64-apple-macosx15.0-debug.module>"]
+default: "main"
+nodes:
+  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Polkabind.xcframework/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/polkabind.swift"]
+    outputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/sources"]
+    description: "Write auxiliary file /Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/sources"
+
+  "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<Polkabind-arm64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/polkabind.swift.o","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Modules/Polkabind.swiftmodule"]
+    outputs: ["<Polkabind-arm64-apple-macosx15.0-debug.module>"]
+
+  "C.Polkabind-arm64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/polkabind.swift","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/sources"]
+    outputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/polkabind.swift.o","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Modules/Polkabind.swiftmodule"]
+    description: "Compiling Swift Module 'Polkabind' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","Polkabind","-emit-dependencies","-emit-module","-emit-module-path","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Modules/Polkabind.swiftmodule","-output-file-map","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/sources","-I","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx12.0","-enable-batch-mode","-index-store-path","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/index/store","-Onone","-enable-testing","-j10","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/.build/arm64-apple-macosx/debug/Polkabind.build/Polkabind-Swift.h","-swift-version","5","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Polkabind.xcframework/","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Sources/Polkabind/","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Package.swift","/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

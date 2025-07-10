@@ -2,63 +2,71 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CORE_DIR="$ROOT/polkabind-core"
 OUT_DIR="$ROOT/bindings"
 
-# Where our freshly built cdylib will live:
-DYLIB="$ROOT/target/release/libpolkabind.dylib"
-SO="$ROOT/target/release/libpolkabind.so"
+UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
 
-# Pick the right host‐library for this platform:
-if [[ -f "$DYLIB" ]]; then
-  HOST_LIB="$DYLIB"
-elif [[ -f "$SO" ]]; then
-  HOST_LIB="$SO"
-else
-  echo "❌ could not find libpolkabind.{dylib,so} in target/release"
+echo "🛠️  Building host dylib .."
+# this will place libpolkabind.dylib in $ROOT/target/release
+cargo build --manifest-path "$ROOT/Cargo.toml" --release
+
+DYLIB="$ROOT/target/release/libpolkabind.dylib"
+if [[ ! -f "$DYLIB" ]]; then
+  echo "❌ could not find $DYLIB"
   exit 1
 fi
 
-KOTLIN_BINDINGS_DIR="$OUT_DIR/kotlin"
-SWIFT_BINDINGS_DIR="$OUT_DIR/swift"
+SWIFT_DIR="$OUT_DIR/swift"
 
-cmd=${1:-generate}
-shift || true
+echo "🧹 Cleaning old bindings .."
+rm -rf "$SWIFT_DIR"
+mkdir -p "$SWIFT_DIR"
 
-generate() {
-  echo "🧹 Cleaning old bindings…"
-  rm -rf "$KOTLIN_BINDINGS_DIR" "$SWIFT_BINDINGS_DIR"
-  mkdir -p "$KOTLIN_BINDINGS_DIR" "$SWIFT_BINDINGS_DIR"
+echo "🍎 Generating Swift bindings .."
+"$UNIFFI_BIN" generate \
+  --library "$DYLIB" \
+  --language swift \
+  --out-dir "$SWIFT_DIR" \
 
-  echo "🛠️  Building core crate…"
-  cargo build --manifest-path "$CORE_DIR/Cargo.toml" --release
+# Tweak the Swift import
+SWIFT_FILE="$SWIFT_DIR/polkabind.swift"
+if [[ -f "$SWIFT_FILE" ]]; then
+  sed -i '' '1s%^%@_implementationOnly import PolkabindFFI\n%' "$SWIFT_FILE"
+  sed -i '' '/^import polkabind$/d'    "$SWIFT_FILE"
+fi
 
-  echo "🔧 Generating Kotlin bindings…"
-  target/release/uniffi-bindgen generate \
-    --library "$HOST_LIB" \
-    --language kotlin \
-    --no-format \
-    --out-dir "$KOTLIN_BINDINGS_DIR" \
-    #"$CORE_DIR/src/lib.rs"
+echo "✅ Swift bindings are in $SWIFT_DIR"
 
-  echo "🍎 Generating Swift bindings…"
-  target/release/uniffi-bindgen generate \
-    --library "$HOST_LIB" \
-    --language swift \
-    --out-dir "$SWIFT_BINDINGS_DIR" \
-    #"$CORE_DIR/src/lib.rs"
+echo "🛠️ Creating the XCFramework .."
 
-  # Tweak the Swift import for implementation-only
-  SWIFT_FILE="$SWIFT_BINDINGS_DIR/polkabind.swift"
-  if [[ -f "$SWIFT_FILE" ]]; then
-    # 1) Prepend the @_implementationOnly import
-    sed -i '' '1s%^%@_implementationOnly import PolkabindFFI\n%' "$SWIFT_FILE"
-    # 2) Remove any stray `import PolkabindFFI`
-    sed -i '' '/^import PolkabindFFI$/d' "$SWIFT_FILE"
-  fi
-}
+DEVICE_LIB=target/aarch64-apple-ios/release/libpolkabind.dylib
+cargo build --release --target aarch64-apple-ios
 
-case "$cmd" in
-  generate)   generate ;;
-  *) echo "Usage: $0 generate" && exit 1 ;;
-esac
+SIM_LIB=target/x86_64-apple-ios/release/libpolkabind.dylib
+cargo build --release --target x86_64-apple-ios
+
+echo "🧹 Cleaning old XCFramework .."
+
+XCF_ROOT_DIR="$ROOT/out/PolkabindSwift"
+XCF_DIR="$ROOT/out/PolkabindSwift/Polkabind.xcframework"
+rm -rf "$XCF_DIR"
+
+xcodebuild -create-xcframework \
+\
+-library "$DEVICE_LIB" \
+-headers bindings/swift \
+\
+-library "$SIM_LIB" \
+-headers bindings/swift \
+\
+-output out/PolkabindSwift/Polkabind.xcframework
+
+echo "🛠 Building Swift XCFramework .."
+
+rm "$XCF_ROOT_DIR/sources/Polkabind/polkabind.swift"
+cp "$SWIFT_DIR/polkabind.swift" "$XCF_ROOT_DIR/sources/Polkabind/"
+
+cd "$XCF_ROOT_DIR"
+swift build
+
+echo "✅ Done building Swift XCFramework."
