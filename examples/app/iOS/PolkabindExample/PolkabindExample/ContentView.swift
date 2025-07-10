@@ -39,26 +39,25 @@ struct ContentView: View {
     }
 
     private func sendTransfer() {
+        print("🔔 sendTransfer() called")
         guard let amt = UInt64(amountText) else {
             status = "❌ Bad amount"
             return
         }
-
-        // 1) update UI immediately
         status = "⏳ Sending…"
 
-        // 2) do the Rust FFI off the main thread
         DispatchQueue.global(qos: .userInitiated).async {
+            print("🔔 Background task starting…")
             let result: Result<Void, Error> = Result {
                 try Polkabind.doTransfer(destHex: destHex, amount: amt)
             }
-
-            // 3) come back to the main thread to update `status`
             DispatchQueue.main.async {
                 switch result {
                 case .success:
+                    print("🔔 Background succeeded")
                     status = "✅ Success!"
                 case .failure(let err):
+                    print("🔔 Background failed: \(err)")
                     status = "❌ \(err)"
                 }
             }
