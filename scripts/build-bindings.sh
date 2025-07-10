@@ -63,9 +63,6 @@ xcodebuild -create-xcframework \
 
 echo "🛠 Building Swift XCFramework .."
 
-rm "$XCF_ROOT_DIR/sources/Polkabind/polkabind.swift"
-cp "$SWIFT_DIR/polkabind.swift" "$XCF_ROOT_DIR/sources/Polkabind/"
-
 cd "$XCF_ROOT_DIR"
 swift build
 
