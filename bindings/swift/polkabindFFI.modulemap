@@ -1,4 +1,4 @@
-module PolkabindFFI {
+module polkabindFFI {
     header "polkabindFFI.h"
     export *
     use "Darwin"

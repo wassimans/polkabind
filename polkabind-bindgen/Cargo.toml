@@ -6,11 +6,11 @@ authors = [ "Wassim Mansouri <wassim@polkabind.dev>" ]
 
 [dependencies]
 polkabind-core = { path = "../polkabind-core" }
-uniffi = { workspace = true, features = ["cli"] }
+uniffi = { workspace = true}
 
 [[bin]]
 name = "uniffi-bindgen"
 path = "src/bin/uniffi-bindgen.rs"
 
 [build-dependencies]
-uniffi = {workspace = true, features = ["build"] }
+uniffi = {workspace = true}
