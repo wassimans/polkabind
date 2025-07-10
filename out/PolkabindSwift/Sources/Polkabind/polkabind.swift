@@ -3,6 +3,7 @@
 
 // swiftlint:disable all
 import Foundation
+@_implementationOnly import polkabindFFI
 
 // Depending on the consumer's build setup, the low-level FFI code
 // might be in a separate module, or it might be compiled inline into
