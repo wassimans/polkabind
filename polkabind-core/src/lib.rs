@@ -35,7 +35,7 @@ pub fn do_transfer(dest_hex: &str, amount: u64) -> Result<(), TransferError> {
         Composite::unnamed(vec![Value::from_bytes(arr.to_vec())]),
     );
     let client = rt().block_on(async {
-        OnlineClient::<PolkadotConfig>::from_url("ws://127.0.0.1:9944")
+        OnlineClient::<PolkadotConfig>::from_url("ws://127.0.0.1:8000")
             .await
             .unwrap()
     });
