@@ -28,13 +28,6 @@ echo "🍎 Generating Swift bindings .."
   --language swift \
   --out-dir "$SWIFT_DIR" \
 
-# Tweak the Swift import
-SWIFT_FILE="$SWIFT_DIR/polkabind.swift"
-if [[ -f "$SWIFT_FILE" ]]; then
-  sed -i '' '1s%^%@_implementationOnly import PolkabindFFI\n%' "$SWIFT_FILE"
-  sed -i '' '/^import polkabind$/d'    "$SWIFT_FILE"
-fi
-
 echo "✅ Swift bindings are in $SWIFT_DIR"
 
 echo "🛠️ Creating the XCFramework .."
@@ -48,7 +41,7 @@ cargo build --release --target x86_64-apple-ios
 echo "🧹 Cleaning old XCFramework .."
 
 XCF_ROOT_DIR="$ROOT/out/PolkabindSwift"
-XCF_DIR="$ROOT/out/PolkabindSwift/Polkabind.xcframework"
+XCF_DIR="$ROOT/out/PolkabindSwift/polkabindFFI.xcframework"
 rm -rf "$XCF_DIR"
 
 xcodebuild -create-xcframework \
@@ -59,11 +52,21 @@ xcodebuild -create-xcframework \
 -library "$SIM_LIB" \
 -headers bindings/swift \
 \
--output out/PolkabindSwift/Polkabind.xcframework
+-output out/PolkabindSwift/polkabindFFI.xcframework
+
+for arch in ios-arm64 ios-x86_64-simulator; do
+  HDR="$XCF_DIR/$arch/Headers"
+  # 1) Rename the module‐map so SwiftPM will see *any* modulemap at all
+  mv "$HDR/polkabindFFI.modulemap" "$HDR/module.modulemap"
+  # 2) Patch its contents to declare the module UniFFI’s Swift is expecting
+  #sed -i '' 's/module polkabindFFI/module PolkabindFFI/' "$HDR/module.modulemap"
+done
 
 echo "🛠 Building Swift XCFramework .."
 
 cd "$XCF_ROOT_DIR"
+rm -rf .build
+cp "$SWIFT_DIR/polkabind.swift" "$XCF_ROOT_DIR/Sources/Polkabind"
 swift build
 
 echo "✅ Done building Swift XCFramework."

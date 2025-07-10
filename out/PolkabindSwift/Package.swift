@@ -13,17 +13,13 @@ let package = Package(
     ),
   ],
   targets: [
-    // your Swift façade
+    .binaryTarget(
+      name: "polkabindFFI",
+      path: "polkabindFFI.xcframework"
+    ),
     .target(
       name: "Polkabind",
-      dependencies: [
-        .target(name: "PolkabindFFI")
-      ]
-    ),
-    // the binary FFI module
-    .binaryTarget(
-      name: "PolkabindFFI",          // <— lowercase, matches import
-      path: "Polkabind.xcframework"
+      dependencies: ["polkabindFFI"]
     ),
   ]
 )

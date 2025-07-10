@@ -9,11 +9,11 @@
           "location" : "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift",
           "name" : "PolkabindSwift"
         },
-        "path" : "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/Polkabind.xcframework",
+        "path" : "/Users/wassim/Projects/Polkabind/polkabind/out/PolkabindSwift/polkabindFFI.xcframework",
         "source" : {
           "type" : "local"
         },
-        "targetName" : "PolkabindFFI"
+        "targetName" : "polkabindFFI"
       }
     ],
     "dependencies" : [
