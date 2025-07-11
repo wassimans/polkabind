@@ -86,7 +86,7 @@ jobs:
 
       - name: Authenticate to GitHub
         run: |
-          swift package --enable-binary-target-packages registry login \
+          swift package registry login \
             --url https://swift.pkg.github.com \
             --token $GITHUB_TOKEN
 
