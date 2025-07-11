@@ -1991,7 +1991,7 @@ dependencies = [
 
 [[package]]
 name = "polkabind-core"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "hex",
  "serde",
