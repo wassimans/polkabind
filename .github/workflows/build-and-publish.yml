@@ -85,8 +85,6 @@ jobs:
         run: xcodebuild -version
 
       - name: Authenticate to GitHub
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           swift package --enable-binary-target-packages registry login \
             --url https://swift.pkg.github.com \
@@ -99,9 +97,8 @@ jobs:
           path: out
 
       - name: Publish Swift Package
-        working-directory: out/polkabind-swift-pkg
         run: |
-          swift package --enable-binary-target-packages registry publish \
+          swift package registry publish \
             --package-path . \
             --url https://swift.pkg.github.com/Polkabind/polkabind \
             --version "${GITHUB_REF##*/}" \
