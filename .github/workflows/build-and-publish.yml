@@ -85,6 +85,7 @@ jobs:
         run: xcodebuild -version
 
       - name: Authenticate to GitHub
+        working-directory: out/polkabind-swift-pkg
         run: |
           swift package registry login \
             --url https://swift.pkg.github.com \
@@ -97,6 +98,7 @@ jobs:
           path: out
 
       - name: Publish Swift Package
+        working-directory: out/polkabind-swift-pkg
         run: |
           swift package registry publish \
             --package-path . \
