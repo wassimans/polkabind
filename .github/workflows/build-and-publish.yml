@@ -1,5 +1,6 @@
 name: Build & Publish Swift Package
 
+# grant the packaging permissions so $GITHUB_TOKEN can push up binaries
 permissions:
   contents: read
   packages: write
@@ -8,47 +9,32 @@ permissions:
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*.*.*' ]
+    tags:    [ 'v*.*.*' ]
   workflow_dispatch:
 
 jobs:
   build:
+    name: 🛠 Build XCFramework & Package
     runs-on: macos-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Install Rust
+      - name: Install Rust & iOS targets
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
+      - run: rustup target add aarch64-apple-ios aarch64-apple-ios-sim
 
-      - name: Install iOS Rust targets
-        run: |
-          rustup target add aarch64-apple-ios \
-                            aarch64-apple-ios-sim \
-                            x86_64-apple-ios
-
-      - name: Cache Cargo
+      - name: Cache Cargo deps
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Setup Swift 5.9
-        uses: apple/actions/setup-swift@v2
-        with:
-          swift-version: '5.9'
-
-      - name: Swift version
-        run: swift --version
-
-      - name: Set up Xcode
-        run: xcodebuild -version
 
       - name: Cache SwiftPM
         uses: actions/cache@v4
@@ -59,36 +45,37 @@ jobs:
             .build
           key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
 
-      - name: Build XCFramework & Swift Package
+      - name: Build and bundle
         run: scripts/build-bindings.sh
 
-      - name: Upload Swift Package
+      - name: Upload Swift Package artifact
         uses: actions/upload-artifact@v4
         with:
           name: polkabind-swift-pkg
           path: out/polkabind-swift-pkg
 
   publish:
+    name: 🚀 Publish to Swift Registry
     needs: build
     runs-on: macos-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Install Swift 5.9
-        uses: SwiftyLab/setup-swift@v1.11.0
-        with:
-          swift-version: '5.9'
-
-      - name: Download Swift Package artifact
+      - name: Download package artifact
         uses: actions/download-artifact@v4
         with:
           name: polkabind-swift-pkg
           path: polkabind-swift-pkg
 
-      - name: Login to Swift Package Registry
+      - name: Select Xcode 16.4
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app
+          xcodebuild -version
+
+      - name: Login to Swift Registry
         working-directory: polkabind-swift-pkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
