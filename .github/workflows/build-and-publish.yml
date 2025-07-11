@@ -42,7 +42,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Select Xcode 16.4
-        uses: actions/setup-xcode@v4
+        uses: actions/setup-xcode@v2
         with:
           xcode-version: '16.4'
 
@@ -76,7 +76,7 @@ jobs:
           fetch-depth: 0
 
       - name: Select Xcode 16.4
-        uses: actions/setup-xcode@v4
+        uses: actions/setup-xcode@v2
         with:
           xcode-version: '16.4'
 
