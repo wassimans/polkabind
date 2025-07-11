@@ -40,9 +40,12 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup Swift 5.9
-        uses: SwiftyLab/setup-swift@v1.11.0
+        uses: apple/actions/setup-swift@v2
         with:
           swift-version: '5.9'
+
+      - name: Swift version
+        run: swift --version
 
       - name: Set up Xcode
         run: xcodebuild -version
