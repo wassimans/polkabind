@@ -1,6 +1,5 @@
 name: Build & Publish Swift Package
 
-# grant the packaging permissions so $GITHUB_TOKEN can push up binaries
 permissions:
   contents: read
   packages: write
@@ -14,30 +13,26 @@ on:
 
 jobs:
   build:
-    name: 🛠 Build XCFramework & Package
     runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Install Rust & iOS targets
+      - name: Install Rust + iOS targets
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
       - run: rustup target add aarch64-apple-ios aarch64-apple-ios-sim
 
-      - name: Cache Cargo deps
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
+        name: Cache Cargo
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+          path: ~/.cargo/{registry,git}
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Cache SwiftPM
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
+        name: Cache SwiftPM
         with:
           path: |
             ~/.swiftpm
@@ -45,37 +40,30 @@ jobs:
             .build
           key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
 
-      - name: Build and bundle
+      - name: Build & bundle XCFramework + Swift package
         run: scripts/build-bindings.sh
 
-      - name: Upload Swift Package artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
+        name: Upload Swift Package
         with:
           name: polkabind-swift-pkg
           path: out/polkabind-swift-pkg
 
   publish:
-    name: 🚀 Publish to Swift Registry
     needs: build
     runs-on: macos-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Download package artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
+        name: Download Swift Package
         with:
           name: polkabind-swift-pkg
           path: polkabind-swift-pkg
 
-      - name: Select Xcode 16.4
-        run: |
-          sudo xcode-select -s /Applications/Xcode_16.4.app
-          xcodebuild -version
-
-      - name: Login to Swift Registry
+      - name: Login & Publish to Swift Registry
         working-directory: polkabind-swift-pkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -84,9 +72,6 @@ jobs:
             --url https://swift.pkg.github.com \
             --token $GITHUB_TOKEN
 
-      - name: Publish Swift Package
-        working-directory: polkabind-swift-pkg
-        run: |
           swift package registry publish \
             --package-path . \
             --url https://swift.pkg.github.com/Polkabind/polkabind \
