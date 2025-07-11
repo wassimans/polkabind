@@ -78,14 +78,19 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
 
-      - name: Xcode Version
-        run: xcodebuild -version
+      - name: Download Package Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: polkabind-swift-pkg
+          path: .
+
+      - name: Unzip Package
+        run: unzip polkabind-swift-pkg/polkabind-swift-pkg.zip -d polkabind-swift-pkg
 
       - name: Authenticate to GitHub
-        working-directory: out/polkabind-swift-pkg
+        working-directory: polkabind-swift-pkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -93,14 +98,8 @@ jobs:
             --url https://swift.pkg.github.com \
             --token $GITHUB_TOKEN
 
-      - name: Download Package Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: polkabind-swift-pkg
-          path: out
-
       - name: Publish Swift Package
-        working-directory: out/polkabind-swift-pkg
+        working-directory: polkabind-swift-pkg
         run: |
           swift package registry publish \
             --package-path . \
