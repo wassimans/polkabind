@@ -31,7 +31,7 @@ jobs:
           override: true
 
       - name: Cache Cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -43,7 +43,7 @@ jobs:
           xcodebuild -version
 
       - name: Cache SwiftPM
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.swiftpm
@@ -61,7 +61,7 @@ jobs:
         run: |
           zip -r polkabind-swift-pkg.zip .
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: polkabind-swift-pkg
           path: out/polkabind-swift-pkg/polkabind-swift-pkg.zip
