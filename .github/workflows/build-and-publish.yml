@@ -16,7 +16,6 @@ jobs:
   build:
     name: Build & Package
     runs-on: macos-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,7 +65,6 @@ jobs:
     needs: build
     runs-on: macos-latest
     if: startsWith(github.ref, 'refs/tags/v')
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,6 +76,12 @@ jobs:
         with:
           name: polkabind-swift-pkg
           path: pkg
+
+      # ← New: install Xcode 16.4 so Swift 5.9's `registry` subcommand is available
+      - name: Setup Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: '16.4'
 
       - name: Login to GitHub Swift Registry
         working-directory: pkg
