@@ -1,5 +1,11 @@
 name: Build & Publish Swift Package
 
+# request the ability to write to the packages registry
+permissions:
+  contents: read            # checkout code
+  packages: write           # publish to GitHub Packages
+  id-token: write           # OIDC
+
 on:
   push:
     branches:
