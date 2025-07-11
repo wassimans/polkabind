@@ -86,6 +86,8 @@ jobs:
 
       - name: Authenticate to GitHub
         working-directory: out/polkabind-swift-pkg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           swift package registry login \
             --url https://swift.pkg.github.com \
