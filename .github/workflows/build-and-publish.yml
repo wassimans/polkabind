@@ -93,7 +93,7 @@ jobs:
             --token $GITHUB_TOKEN
 
       - name: Download Package Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: polkabind-swift-pkg
           path: out
