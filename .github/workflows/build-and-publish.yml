@@ -16,7 +16,6 @@ on:
 
 jobs:
   build:
-    name: Build & Package
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -29,6 +28,12 @@ jobs:
         with:
           toolchain: stable
           override: true
+
+      - name: Install iOS Rust targets
+        run: |
+          rustup target add aarch64-apple-ios \
+                            aarch64-apple-ios-sim \
+                            x86_64-apple-ios
 
       - name: Cache Cargo
         uses: actions/cache@v4
