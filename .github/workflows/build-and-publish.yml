@@ -1,9 +1,9 @@
 name: Build & Publish Swift Package
 
 permissions:
-  contents: read
-  packages: write
-  id-token: write
+  contents: read     # for checkout
+  packages: write    # for publishing
+  id-token: write    # for Swift registry login
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Rust
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -29,9 +29,10 @@ jobs:
 
       - name: Add iOS Rust targets
         run: |
-          rustup target add aarch64-apple-ios \
-                            aarch64-apple-ios-sim \
-                            x86_64-apple-ios
+          rustup target add \
+            aarch64-apple-ios \
+            aarch64-apple-ios-sim \
+            x86_64-apple-ios
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -42,7 +43,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Select Xcode 16.4
-        uses: actions/setup-xcode@v2
+        uses: apple/actions/setup-xcode@v2
         with:
           xcode-version: '16.4'
 
@@ -76,7 +77,7 @@ jobs:
           fetch-depth: 0
 
       - name: Select Xcode 16.4
-        uses: actions/setup-xcode@v2
+        uses: apple/actions/setup-xcode@v2
         with:
           xcode-version: '16.4'
 
@@ -86,14 +87,14 @@ jobs:
           name: polkabind-swift-pkg
           path: pkg
 
-      - name: Login & Publish to Swift Registry
+      - name: Login & Publish Swift Package
         working-directory: pkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           swift package registry login \
             --url https://swift.pkg.github.com \
-            --token $GITHUB_TOKEN
+            --token "$GITHUB_TOKEN"
 
           swift package registry publish \
             --package-path . \
