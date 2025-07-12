@@ -61,7 +61,7 @@ jobs:
           name: polkabind-swift-pkg
           path: out/polkabind-swift-pkg
 
-  publish:
+    publish:
     name: Publish to Swift Package Registry
     needs: build
     runs-on: macos-latest
@@ -73,11 +73,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ✅ Replacing invalid `actions/setup-xcode@v4` with correct version
-      - name: Set up Xcode
-        run: |
-          echo "Using default Xcode version:"
-          xcodebuild -version
+      - name: Confirm Xcode availability
+        run: xcodebuild -version
 
       - name: Download Swift Package artifact
         uses: actions/download-artifact@v4
