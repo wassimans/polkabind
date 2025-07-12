@@ -92,5 +92,6 @@ jobs:
           cp -R ../polkabind-swift-pkg/* .
           git add .
           git commit -m "Release ${{ github.ref_name }}" || echo "No changes to commit"
+          git branch -M main
           git push origin main
           git push origin refs/tags/${{ github.ref_name }}
