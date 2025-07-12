@@ -88,10 +88,11 @@ jobs:
       - name: Replace contents of target repo with built package
         run: |
           cd target-repo
+          git checkout -b main
           find . -maxdepth 1 -mindepth 1 ! -name '.github' -exec rm -rf {} +
           cp -R ../polkabind-swift-pkg/* .
           git add .
           git commit -m "Release ${{ github.ref_name }}" || echo "No changes to commit"
-          git branch -M main
           git push origin main
+          git tag ${{ github.ref_name }}
           git push origin refs/tags/${{ github.ref_name }}
