@@ -1,10 +1,9 @@
-# .github/workflows/release.yml
 name: Build & Publish Swift Package
 
 permissions:
-  contents: read       # to checkout code
-  packages: write      # to publish to GitHub Packages
-  id-token: write      # for Swift registry login (OIDC)
+  contents: read
+  packages: write
+  id-token: write
 
 on:
   push:
@@ -86,20 +85,13 @@ jobs:
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Polkabind/polkabind-swift-pkg.git target-repo
 
-      - name: Replace contents of target repo with built package and push
+      - name: Replace contents of target repo with built package
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
           cd target-repo
-
-          # Clean old contents and replace with new
-          git rm -rf . || true
+          find . -maxdepth 1 -mindepth 1 ! -name '.github' -exec rm -rf {} +
           cp -R ../polkabind-swift-pkg/* .
-
-          # Commit changes
           git add .
-          git commit -m "Release $TAG_NAME" || echo "No changes to commit"
-
-          # Tag and push
-          git tag -f "$TAG_NAME"
+          git commit -m "Release ${{ github.ref_name }}" || echo "No changes to commit"
+          git tag ${{ github.ref_name }}
           git push origin main
-          git push origin "$TAG_NAME"
+          git push origin ${{ github.ref_name }}
