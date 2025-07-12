@@ -62,26 +62,44 @@ jobs:
           path: out/polkabind-swift-pkg
 
   publish:
-    name: Publish Swift Package to GitHub Release
+    name: Publish Swift Package to polkabind-swift-pkg repo
     needs: build
     runs-on: macos-latest
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Checkout
+      - name: Checkout polkabind repo
         uses: actions/checkout@v4
 
       - name: Download Swift Package artifact
         uses: actions/download-artifact@v4
         with:
           name: polkabind-swift-pkg
-          path: pkg
+          path: polkabind-swift-pkg
 
-      - name: Zip Swift Package
-        run: cd pkg && zip -r polkabind-swift-pkg.zip .
+      - name: Set up Git identity
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@users.noreply.github.com"
 
-      - name: Create GitHub Release & Upload Asset
-        uses: softprops/action-gh-release@v1
-        with:
-          files: pkg/polkabind-swift-pkg.zip
-          token: ${{ secrets.GH_PAT }}
+      - name: Clone polkabind-swift-pkg target repo
+        run: |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Polkabind/polkabind-swift-pkg.git target-repo
+
+      - name: Replace contents of target repo with built package and push
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          cd target-repo
+
+          # Clean old contents and replace with new
+          git rm -rf . || true
+          cp -R ../polkabind-swift-pkg/* .
+
+          # Commit changes
+          git add .
+          git commit -m "Release $TAG_NAME" || echo "No changes to commit"
+
+          # Tag and push
+          git tag -f "$TAG_NAME"
+          git push origin main
+          git push origin "$TAG_NAME"
