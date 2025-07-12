@@ -73,8 +73,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Confirm Xcode availability
-        run: xcodebuild -version
+      - name: Install Swift 5.9
+        uses: SwiftyLab/setup-swift@v1.11.0
+        with:
+          swift-version: '5.9'
+
+      - name: Confirm Swift version
+        run: swift --version
 
       - name: Download Swift Package artifact
         uses: actions/download-artifact@v4
