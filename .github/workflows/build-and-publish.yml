@@ -88,7 +88,7 @@ jobs:
       - name: Replace contents of target repo with built package
         run: |
           cd target-repo
-          git checkout -b main
+          git switch main || git checkout -b main
           find . -maxdepth 1 -mindepth 1 ! -name '.github' -exec rm -rf {} +
           cp -R ../polkabind-swift-pkg/* .
           git add .
