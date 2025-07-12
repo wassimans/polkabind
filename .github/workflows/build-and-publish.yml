@@ -61,7 +61,7 @@ jobs:
           name: polkabind-swift-pkg
           path: out/polkabind-swift-pkg
 
-    publish:
+  publish:
     name: Publish to Swift Package Registry
     needs: build
     runs-on: macos-latest
