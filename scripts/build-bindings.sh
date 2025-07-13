@@ -57,6 +57,10 @@ for slice in device simulator; do
   # rename the dylib to the framework’s binary name
   cp "$SRC" "$FWK/polkabindFFI"
 
+  # Give Xcode the install-name
+  install_name_tool -id "@rpath/polkabindFFI.framework/polkabindFFI" \
+                  "$FWK/polkabindFFI"
+
   # copy UniFFI headers + modulemap
   cp "$BINDINGS/polkabindFFI.h"       "$FWK/Headers/"
   cp "$BINDINGS/polkabindFFI.modulemap" "$FWK/Modules/module.modulemap"

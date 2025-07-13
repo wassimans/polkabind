@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		CF2F6D8D2E20371E00B07C20 /* Polkabind in Frameworks */ = {isa = PBXBuildFile; productRef = CF2F6D8C2E20371E00B07C20 /* Polkabind */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		CF2F6D532E20075400B07C20 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -56,7 +52,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF2F6D8D2E20371E00B07C20 /* Polkabind in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,7 +205,6 @@
 			mainGroup = CF2F6D3C2E20075200B07C20;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CF2F6D8B2E20371E00B07C20 /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CF2F6D462E20075200B07C20 /* Products */;
@@ -567,13 +561,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		CF2F6D8B2E20371E00B07C20 /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../../../out/polkabind-swift-pkg";
-		};
-/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		CF2F6D8C2E20371E00B07C20 /* Polkabind */ = {
