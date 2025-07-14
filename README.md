@@ -150,22 +150,24 @@ Button("Send Transfer") {
 
 ## Quick local test
 
-### 1. launch an instant-finality Polkadot dev chain using Chopsticks
+1. launch an instant-finality Polkadot dev chain using Chopsticks.
 ``` shell
 npx @acala-network/chopsticks \
   --config=https://raw.githubusercontent.com/AcalaNetwork/chopsticks/master/configs/polkadot.yml \
   --build-block-mode Instant
 ```
 
-### 2. open PolkabindExample.xcodeproj in Xcode
-### 3. Add the binary package
-- Xcode →  Package Dependencies → «https://github.com/Polkabind/polkabind-swift-pkg»
-- Select the latest Release (tag vX.Y.Z).
+2. open PolkabindExample.xcodeproj in Xcode.
+
+3. Add the binary package:
+  - Xcode →  Package Dependencies → «https://github.com/Polkabind/polkabind-swift-pkg»
+  - Select the latest Release (tag vX.Y.Z).
   - Link “Polkabind” to your app target (Xcode does this automatically when you tick the checkbox).
   
-### 4. run on a simulator.
-### 5. tap "Send Transfer":
-- In the simulator you’ll see ✅ Success!; in the Chopsticks console the extrinsic is instantly finalised.
+4. run on a simulator.
+
+5. tap "Send Transfer":
+  - In the simulator you’ll see ✅ Success!; in the Chopsticks console the extrinsic is instantly finalised.
 
 That’s all: no Rust toolchain, no Subxt boilerplate, just a tiny binary framework you can ship in any iOS app.
 
