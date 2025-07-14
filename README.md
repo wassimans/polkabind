@@ -32,60 +32,54 @@ Subxt itself is the primary Rust/Webassembly based tool used to interact with Po
 
 ## High-Level Workflow
 
+This is a high level workflow showcasing the production a Swift Polkabind package.
+
 ```mermaid
 flowchart TD
-  %% -----------------------------------------------------------
-  %%  Repositories
-  %% -----------------------------------------------------------
-  subgraph CoreRepo["**polkabind** (Rust · Subxt façade)"]
-    A1[Push / Tag] --> CI[ GitHub Actions CI ]
+  %% ──────────────────────────────────────────────
+  %%  Repositories (left-to-right data flow)
+  %% ──────────────────────────────────────────────
+  subgraph CORE["**polkabind**  (Rust + Subxt façade)"]
+    A[Push / Tag vX.Y.Z]
   end
 
-  subgraph SwiftRepo["**polkabind-swift-pkg**"]
-    P1[Release&nbsp;zip<br/>+ SPM manifest]:::asset
-  end
-
-  classDef asset fill:#fff5dd,stroke:#e6ba42,color:#000;
-
-  %% -----------------------------------------------------------
-  %%  Core CI stages
-  %% -----------------------------------------------------------
-  subgraph CorePipeline["CI Pipeline (in Core repo)"]
+  subgraph CORE_CI["Core repo CI  ( GitHub Actions )"]
     direction LR
-    CI --> B1[Build Rust dylib<br/> + aarch64 & sim]:::ci
-    B1 --> B2[UniFFI → Swift stubs]:::ci
-    B2 --> B3[Bundle xcframework<br/>+ Package.swift]:::ci
-    B3 --> B4[Publish files<br/>to Swift repo<br/>+ version tag]:::ci
+    B1[Build<br/>⚙️ Rust dylib<br/> device + sim] --> B2[Generate Swift stubs<br/>🔧 UniFFI]
+    B2 --> B3[Bundle xcframework<br/>+ Package.swift]
+    B3 -->|git push files & tag| B4[Mirror into<br/>**polkabind-swift-pkg**]
   end
 
-  classDef ci fill:#eef3ff,stroke:#97b3ff,color:#000;
-
-  %% -----------------------------------------------------------
-  %%  Swift Repo CI
-  %% -----------------------------------------------------------
-  subgraph SwiftPipeline["CI in Swift repo"]
-    direction LR
-    PR1[Tag pushed<br/>from Core CI] --> SR1[Zip package]:::ci2
-    SR1 --> SR2[Create GitHub<br/>Release]:::ci2
+  subgraph SWIFT_REPO["**polkabind-swift-pkg**  (repo)"]
+    C[New commit<br/>+ tag vX.Y.Z]
   end
 
-  classDef ci2 fill:#e8fce8,stroke:#84cc84,color:#000;
-
-  %% -----------------------------------------------------------
-  %%  Consumers
-  %% -----------------------------------------------------------
-  subgraph Consumers
-    IOS[iOS / macOS<br/>SwiftUI app] -->|SPM fetches Release| P1
-    AND[Android app<br/> future Kotlin] -.->|Maven Central| D2
-    PY[Python script] -.->|PyPI wheel| D3
-    JS[Node / Web] -.->|npm package| D4
+  subgraph SWIFT_CI["Swift repo CI  ( GitHub Actions )"]
+    D1[Zip package] --> D2[Create GitHub Release<br/>📦 polkabind-swift-pkg.zip]
   end
 
-  %% grey boxes for future lanes
-  D2[Maven artefact]:::future
-  D3[Python wheel]:::future
-  D4[npm package]:::future
-  classDef future fill:#f4f4f4,stroke:#ccc,color:#666,font-style:italic;
+  subgraph CONSUMER["Developer / CI using SwiftPM"]
+    E[Swift / iOS App<br/>adds SPM dependency<br/>→ fetches Release]
+  end
+
+  %% ──────────────────────────────────────────────
+  %%  Link everything
+  %% ──────────────────────────────────────────────
+  A --> CORE_CI
+  B4 --> C
+  C --> SWIFT_CI
+  D2 --> E
+
+  %% ──────────────────────────────────────────────
+  %%  Styling helpers
+  %% ──────────────────────────────────────────────
+  classDef repo      fill:#f9f9f9,stroke:#bbb;
+  classDef pipeline  fill:#eef3ff,stroke:#87a9ff;
+  classDef release   fill:#e8fce8,stroke:#78c878;
+
+  class CORE,SWIFT_REPO repo
+  class CORE_CI,SWIFT_CI pipeline
+  class D2 release
   ```
 
 ## Status
