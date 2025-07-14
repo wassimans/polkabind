@@ -168,6 +168,16 @@ npx @acala-network/chopsticks \
 
 5. tap "Send Transfer":
   - In the simulator you’ll see ✅ Success!; in the Chopsticks console the extrinsic is instantly finalised.
+  
+<p align="center">
+  <img src="assets/ios-ready.png" alt="Ready" width="30%">
+  <img src="assets/ios-sending.png" alt="Sending" width="30%">
+  <img src="assets/ios-success.png" alt="Success" width="30%">
+</p>
+
+<p align="center">
+  <img src="assets/balances.png" alt="Balances" width="50%">
+</p>
 
 That’s all: no Rust toolchain, no Subxt boilerplate, just a tiny binary framework you can ship in any iOS app.
 
