@@ -184,3 +184,15 @@ That’s all: no Rust toolchain, no Subxt boilerplate, just a tiny binary framew
 ## Status
 
 This is a *work-in-progress*, please visit [polkabind.dev](https://polkabind.dev) for a summary of the expected roadmap.
+
+## License
+
+Polkabind is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+### Third-Party Licenses and Attributions
+
+Polkabind uses Subxt, which is dual-licensed under either:
+    • Apache License, Version 2.0, or
+    • GNU General Public License v3.0 (or later)
+
+Polkabind explicitly elects to use Subxt under the terms of the Apache License, Version 2.0.
