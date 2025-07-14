@@ -85,11 +85,10 @@ flowchart TD
 # Show me the code
 
 Here's what it looks like to use `Polkabind` in Swift:
-  
 
-| **Classic Subxt (Rust)** | **Polkabind (Swift)** |
-| ------------------------ | --------------------- |
-| ```rust
+## Classic Subxt (Rust)
+
+``` rust
 // build the address, compose the dynamic call,
 // sign, submit, watch for finality …
 let dst = Value::variant(
@@ -108,11 +107,13 @@ client
     .await?
     .wait_for_finalized_success()
     .await?;
-``` | ```swift
+```
+
+## Polkabind (Swift)
+```swift
 // one blocking FFI call – done 🎉
-try Polkabind.doTransfer(destHex: destHex,
-                         amount: amt)
-``` |
+try Polkabind.doTransfer(destHex: destHex, amount: amt)
+```
 
 Behind the scenes **Polkabind** executes that same Rust (left column) but
 exposes a single, ergonomic Swift API.
