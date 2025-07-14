@@ -119,7 +119,7 @@ Behind the scenes **Polkabind** executes that same Rust (left column) but
 exposes a single, ergonomic Swift API.
 
 # What’s in examples/ ?
-A ready to launch iOS project, you just need to import the Polkabind Swift package.
+A ready to launch iOS project, featuring a balance transfer of from *Alice*'s account to *Bob*'s account. You can check the accounts initial balances after launching a local node with Chopsticks (see below).
 
 ```
 examples/
@@ -176,7 +176,7 @@ npx @acala-network/chopsticks \
 </p>
 
 <p align="center">
-  <img src="assets/balances.png" alt="Balances" width="50%">
+  <img src="assets/balances.png" alt="Balances" width="100%">
 </p>
 
 That’s all: no Rust toolchain, no Subxt boilerplate, just a tiny binary framework you can ship in any iOS app.
