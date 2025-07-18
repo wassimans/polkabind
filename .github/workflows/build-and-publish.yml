@@ -52,7 +52,7 @@ jobs:
           key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
 
       - name: Build XCFramework & Swift Package
-        run: scripts/build-bindings.sh
+        run: scripts/build-swift-bindings.sh
 
       - name: Upload Swift Package artifact
         uses: actions/upload-artifact@v4
