@@ -35,12 +35,13 @@ echo "🧹 Generating Kotlin bindings…"
 rm -rf "$BINDINGS"
 mkdir -p "$BINDINGS"
 "$UNIFFI_BIN" generate \
+  --config "$ROOT/uniffi.toml" \
   --no-format \
   --library "$RUST_DYLIB" \
   --language kotlin \
   --out-dir "$BINDINGS"
 
-GLUE_SRC="$BINDINGS/uniffi/polkabind/polkabind.kt"
+GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 if [[ ! -f "$GLUE_SRC" ]]; then
   echo "❌ UniFFI didn’t emit polkabind.kt"
   exit 1
@@ -117,10 +118,10 @@ dependencies {
 
 android {
     namespace = "dev.polkabind"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
-        minSdk    = 21
+        minSdk    = 24
         // targetSdkVersion(34)
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
@@ -149,7 +150,7 @@ afterEvaluate {
       }
     }
     repositories {
-      maven { url = uri("$rootDir/../../PolkabindKotlin/mavenn-snapshots") }
+      maven { url = uri("$rootDir/../../PolkabindKotlin/maven-snapshots") }
     }
   }
 }
@@ -165,7 +166,7 @@ pushd "$MODULE_DIR" >/dev/null
 if [[ ! -f gradlew ]]; then
   gradle wrapper --gradle-version 8.6 --distribution-type all
 fi
-./gradlew clean bundleReleaseAar publishReleasePublicationToMavenRepository
+./gradlew clean bundleReleaseAar publishToMavenLocal
 popd >/dev/null
 
 # ——— 7) Package minimal Kotlin artifact ———

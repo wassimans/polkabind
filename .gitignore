@@ -9,8 +9,8 @@
 # uniffi-bindgen binary (built under target/)
 **/uniffi-bindgen*
 
-# === UniFFI / generated Swift bindings ===
-/bindings/swift/
+# === UniFFI / generated bindings ===
+/bindings/
 
 # === Build script outputs ===
 /out/
@@ -38,3 +38,8 @@
 
 # === macOS Finder ===
 .DS_Store
+
+# Misc
+db.sqlite
+db.sqlite-shm
+db.sqlite-wal
