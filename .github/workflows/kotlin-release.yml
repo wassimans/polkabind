@@ -1,0 +1,97 @@
+name: Build & Publish Kotlin Package
+
+permissions:
+  contents: read
+  packages: write   # for upload-artifact
+  id-token: write
+
+on:
+  push:
+    branches: [ main ]
+    tags:    [ 'v*.*.*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Package AAR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Kotlin AAR & package
+        run: scripts/build-kotlin-bindings.sh
+
+      - name: Upload Kotlin package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: polkabind-kotlin-pkg
+          path: out/polkabind-kotlin-pkg
+
+  publish:
+    name: Publish to polkabind-kotlin-pkg repo
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout (repo metadata only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download built artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: polkabind-kotlin-pkg
+          path: pkg
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@users.noreply.github.com"
+
+      - name: Clone target repo
+        run: |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Polkabind/polkabind-kotlin-pkg.git target-repo
+
+      - name: Replace contents & push
+        run: |
+          cd target-repo
+          git fetch origin main
+          git checkout main
+          git pull
+
+          # remove everything except .git & .github
+          find . -maxdepth 1 -mindepth 1 ! -name '.git' ! -name '.github' -exec rm -rf {} +
+
+          # copy in newly built package
+          cp -R ../pkg/* .
+
+          git add .
+          git commit -m "Release ${{ github.ref_name }}" || echo "Nothing to commit"
+          git push origin main
+
+          # tag & push
+          git tag ${{ github.ref_name }}
+          git push origin refs/tags/${{ github.ref_name }}
