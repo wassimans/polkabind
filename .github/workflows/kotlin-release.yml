@@ -35,6 +35,9 @@ jobs:
             x86_64-linux-android \
             i686-linux-android
 
+      - name: Build UniFFI bindgen tool
+        run: cargo build --release
+
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
 
