@@ -28,6 +28,21 @@ jobs:
           toolchain: stable
           override: true
 
+
+      - name: Add Android Rust targets
+        run: |
+          rustup target add \
+            aarch64-linux-android \
+            armv7-linux-androideabi \
+            x86_64-linux-android \
+            i686-linux-android
+
+      - name: Install Android NDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          sdkmanager "ndk;21.4.7075529"
+
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
 
