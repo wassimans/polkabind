@@ -2,14 +2,13 @@ name: Build & Publish Kotlin Package
 
 permissions:
   contents: read
-  packages: write   # for upload-artifact
+  packages: write
   id-token: write
 
 on:
   push:
     branches: [ main ]
     tags:    [ 'v*.*.*' ]
-  workflow_dispatch:
 
 jobs:
   build:
@@ -28,7 +27,6 @@ jobs:
           toolchain: stable
           override: true
 
-
       - name: Add Android Rust targets
         run: |
           rustup target add \
@@ -36,14 +34,6 @@ jobs:
             armv7-linux-androideabi \
             x86_64-linux-android \
             i686-linux-android
-
-      - name: Set up Android SDK & NDK
-        uses: google-github-actions/setup-android@v2
-        with:
-          api-level: 31
-          build-tools: 31.0.0
-          ndk: 21.4.7075529
-
 
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
@@ -72,7 +62,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Checkout (repo metadata only)
+      - name: Checkout metadata only
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -85,7 +75,7 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.name "GitHub Actions"
+          git config --global user.name  "GitHub Actions"
           git config --global user.email "github-actions@users.noreply.github.com"
 
       - name: Clone target repo
@@ -95,20 +85,12 @@ jobs:
       - name: Replace contents & push
         run: |
           cd target-repo
-          git fetch origin main
           git checkout main
           git pull
-
-          # remove everything except .git & .github
           find . -maxdepth 1 -mindepth 1 ! -name '.git' ! -name '.github' -exec rm -rf {} +
-
-          # copy in newly built package
           cp -R ../pkg/* .
-
           git add .
           git commit -m "Release ${{ github.ref_name }}" || echo "Nothing to commit"
           git push origin main
-
-          # tag & push
           git tag ${{ github.ref_name }}
           git push origin refs/tags/${{ github.ref_name }}
