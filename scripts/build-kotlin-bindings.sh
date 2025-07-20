@@ -7,8 +7,13 @@ BINDINGS="$ROOT/bindings/kotlin"
 OUT_LIBMODULE="$ROOT/out/PolkabindKotlin"
 OUT_PKG="$ROOT/out/polkabind-kotlin-pkg"
 UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
-# Use the host dylib (uniffi only needs the metadata)
-RUST_DYLIB="$ROOT/target/release/libpolkabind.dylib"
+# Pick the correct extension for our platform
+case "$(uname)" in
+  Darwin) EXT=dylib ;;
+  *)      EXT=so    ;;
+esac
+# Use the host dynamic library (uniffi only needs the metadata)
+RUST_DYLIB="$ROOT/target/release/libpolkabind.$EXT"
 
 # Android ABIs we target
 ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
