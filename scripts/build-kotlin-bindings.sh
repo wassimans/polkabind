@@ -21,6 +21,11 @@ ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
 
 cd "$ROOT"
 
+# 0)   Build host dylib *before* the Android loop ─────────────
+echo "🔨 Building host dylib first…"
+cargo build --release
+[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing $RUST_DYLIB"; exit 1; }
+
 # ——— 1) Cross-compile Rust for Android ABIs ———
 echo "🛠️  Cross-compiling Rust for Android ABIs…"
 for ABI in "${ABIS[@]}"; do
