@@ -18,6 +18,8 @@ RUST_DYLIB="$ROOT/target/release/libpolkabind.$EXT"
 # Android ABIs we target
 ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
 
+cd "$ROOT"
+
 # ——— 1) Cross-compile Rust for Android ABIs ———
 echo "🛠️  Cross-compiling Rust for Android ABIs…"
 for ABI in "${ABIS[@]}"; do
