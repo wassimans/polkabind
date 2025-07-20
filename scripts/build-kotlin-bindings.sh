@@ -37,6 +37,9 @@ for ABI in "${ABIS[@]}"; do
   fi
 done
 
+echo "🔨 Building the uniffi-bindgen tool…"
+cargo build --release -p polkabind-bindgen
+
 # Build host library & bindgen tool
 echo "🛠️  Building Rust host library & bindgen…"
 cargo build --release --manifest-path "$ROOT/Cargo.toml"
