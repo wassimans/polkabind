@@ -7,15 +7,16 @@ BINDINGS="$ROOT/bindings/kotlin"
 OUT_LIBMODULE="$ROOT/out/PolkabindKotlin"
 OUT_PKG="$ROOT/out/polkabind-kotlin-pkg"
 UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
-# Pick the correct extension for our platform
+
+# Pick the correct extension for the host dylib
 case "$(uname)" in
   Darwin) EXT=dylib ;;
   *)      EXT=so    ;;
 esac
-# Use the host dynamic library (uniffi only needs the metadata)
+
 RUST_DYLIB="$ROOT/target/release/libpolkabind.$EXT"
 
-# Android ABIs we target
+# Android ABIs to target
 ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
 
 cd "$ROOT"
@@ -37,16 +38,17 @@ for ABI in "${ABIS[@]}"; do
   fi
 done
 
-echo "🔨 Building the uniffi-bindgen tool…"
+# ——— 2) Build uniffi-bindgen tool ———
+echo "🔨 Building uniffi-bindgen…"
 cargo build --release -p polkabind-bindgen
+[[ -x "$UNIFFI_BIN" ]] || { echo "❌ missing bindgen tool $UNIFFI_BIN"; exit 1; }
 
-# Build host library & bindgen tool
-echo "🛠️  Building Rust host library & bindgen…"
-CARGO_PROFILE_RELEASE_STRIP=none cargo build --release --manifest-path "$ROOT/Cargo.toml"
-[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing $RUST_DYLIB"; exit 1; }
-[[ -f "$UNIFFI_BIN" ]]  || { echo "❌ missing $UNIFFI_BIN";  exit 1; }
+# ——— 3) Build the host cdylib with embedded metadata ———
+echo "🛠️  Building Rust host library (the root polkabind crate)…"
+cargo build --release --manifest-path "$ROOT/Cargo.toml"
+[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing host library $RUST_DYLIB"; exit 1; }
 
-# ——— 2) Generate Kotlin glue ———
+# ——— 4) Generate Kotlin glue ———
 echo "🧹 Generating Kotlin bindings…"
 rm -rf "$BINDINGS"
 mkdir -p "$BINDINGS"
@@ -63,21 +65,21 @@ if [[ ! -f "$GLUE_SRC" ]]; then
   exit 1
 fi
 
-# ——— 3) Lay out Android library module ———
+# ——— 5) Lay out Android library module ———
 echo "📂 Setting up Android library module…"
 MODULE_DIR="$OUT_LIBMODULE/polkabind-android"
 rm -rf "$MODULE_DIR"
 
-# sources & jniLibs dirs
+# create sources & jniLibs dirs
 mkdir -p "$MODULE_DIR/src/main/java/dev/polkabind"
 for ABI in "${ABIS[@]}"; do
   mkdir -p "$MODULE_DIR/src/main/jniLibs/$ABI"
 done
 
-# copy glue
+# copy the generated Kotlin glue
 cp "$GLUE_SRC" "$MODULE_DIR/src/main/java/dev/polkabind/"
 
-# copy .so into jniLibs
+# copy each ABI’s .so into jniLibs
 echo "📂 Copying .so into jniLibs…"
 for ABI in "${ABIS[@]}"; do
   case $ABI in
@@ -86,13 +88,12 @@ for ABI in "${ABIS[@]}"; do
     x86_64)      TARGET=x86_64-linux-android ;;
     x86)         TARGET=i686-linux-android ;;
   esac
-
   SRC="$ROOT/target/${TARGET}/release/libpolkabind.so"
   DST="$MODULE_DIR/src/main/jniLibs/$ABI/libpolkabind.so"
   cp "$SRC" "$DST"
 done
 
-# ——— 4) Create settings.gradle.kts w/ pluginManagement ———
+# ——— 6) Create settings.gradle.kts ———
 cat > "$MODULE_DIR/settings.gradle.kts" <<'EOF'
 pluginManagement {
     repositories {
@@ -116,7 +117,7 @@ dependencyResolutionManagement {
 rootProject.name = "polkabind-android"
 EOF
 
-# ——— 5) Create build.gradle.kts ———
+# ——— 7) Create build.gradle.kts ———
 cat > "$MODULE_DIR/build.gradle.kts" <<'EOF'
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
@@ -126,9 +127,7 @@ plugins {
 }
 
 dependencies {
-    // UniFFI needs JNA for the JNI bridge
     implementation("net.java.dev.jna:jna:5.13.0@aar")
-    // UniFFI uses kotlinx-coroutines for async APIs
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }
 
@@ -137,21 +136,17 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        minSdk    = 24
-        // targetSdkVersion(34)
+        minSdk = 24
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+            abiFilters += listOf("arm64-v8a","armeabi-v7a","x86_64","x86")
         }
     }
 
     publishing {
-        // only publish the release build variant
         singleVariant("release")
     }
 
-    sourceSets["main"].apply {
-        jniLibs.srcDirs("src/main/jniLibs")
-    }
+    sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
 }
 
 afterEvaluate {
@@ -161,7 +156,6 @@ afterEvaluate {
         groupId    = "dev.polkabind"
         artifactId = "polkabind-android"
         version    = "1.0.0-SNAPSHOT"
-
         from(components["release"])
       }
     }
@@ -170,22 +164,22 @@ afterEvaluate {
     }
   }
 }
+
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 EOF
 
-# ——— 6) Bootstrap Gradle wrapper & build AAR ———
-echo "🔧 Bootstrapping Gradle wrapper (8.6) & building AAR…"
+# ——— 8) Bootstrap Gradle wrapper & build AAR ———
+echo "🔧 Bootstrapping Gradle wrapper & building AAR…"
 pushd "$MODULE_DIR" >/dev/null
-
 if [[ ! -f gradlew ]]; then
   gradle wrapper --gradle-version 8.6 --distribution-type all
 fi
 ./gradlew clean bundleReleaseAar publishToMavenLocal
 popd >/dev/null
 
-# ——— 7) Package minimal Kotlin artifact ———
+# ——— 9) Package minimal Kotlin artifact ———
 echo "🚚 Bundling Kotlin package…"
 rm -rf "$OUT_PKG"
 mkdir -p "$OUT_PKG"
