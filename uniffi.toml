@@ -1,3 +1,6 @@
+[package.metadata.uniffi]
+languages = ["swift", "kotlin"]
+
 [bindings.kotlin]
 package_name = "dev.polkabind"
 cdylib_name  = "polkabind"
