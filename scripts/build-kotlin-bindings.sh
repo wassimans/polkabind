@@ -26,7 +26,24 @@ echo "🔨 Building host dylib first…"
 cargo build --release
 [[ -f "$RUST_DYLIB" ]] || { echo "❌ missing $RUST_DYLIB"; exit 1; }
 
-# ——— 1) Cross-compile Rust for Android ABIs ———
+# ——— 1) Generate Kotlin glue ———
+echo "🧹 Generating Kotlin bindings…"
+rm -rf "$BINDINGS"
+mkdir -p "$BINDINGS"
+"$UNIFFI_BIN" generate \
+  --config "$ROOT/uniffi.toml" \
+  --no-format \
+  --library "$RUST_DYLIB" \
+  --language kotlin \
+  --out-dir "$BINDINGS"
+
+GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
+if [[ ! -f "$GLUE_SRC" ]]; then
+  echo "❌ UniFFI didn’t emit polkabind.kt"
+  exit 1
+fi
+
+# ——— 2) Cross-compile Rust for Android ABIs ———
 echo "🛠️  Cross-compiling Rust for Android ABIs…"
 for ABI in "${ABIS[@]}"; do
   case $ABI in
@@ -43,32 +60,15 @@ for ABI in "${ABIS[@]}"; do
   fi
 done
 
-# ——— 2) Build uniffi-bindgen tool ———
+# ——— 3) Build uniffi-bindgen tool ———
 echo "🔨 Building uniffi-bindgen…"
 cargo build --release -p polkabind-bindgen
 [[ -x "$UNIFFI_BIN" ]] || { echo "❌ missing bindgen tool $UNIFFI_BIN"; exit 1; }
 
-# ——— 3) Build the host cdylib with embedded metadata ———
+# ——— 4) Build the host cdylib with embedded metadata ———
 echo "🛠️  Building Rust host library (the root polkabind crate)…"
 cargo build --release --manifest-path "$ROOT/Cargo.toml"
 [[ -f "$RUST_DYLIB" ]] || { echo "❌ missing host library $RUST_DYLIB"; exit 1; }
-
-# ——— 4) Generate Kotlin glue ———
-echo "🧹 Generating Kotlin bindings…"
-rm -rf "$BINDINGS"
-mkdir -p "$BINDINGS"
-"$UNIFFI_BIN" generate \
-  --config "$ROOT/uniffi.toml" \
-  --no-format \
-  --library "$RUST_DYLIB" \
-  --language kotlin \
-  --out-dir "$BINDINGS"
-
-GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
-if [[ ! -f "$GLUE_SRC" ]]; then
-  echo "❌ UniFFI didn’t emit polkabind.kt"
-  exit 1
-fi
 
 # ——— 5) Lay out Android library module ———
 echo "📂 Setting up Android library module…"
