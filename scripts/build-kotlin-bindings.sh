@@ -34,12 +34,14 @@ unset RUSTFLAGS
 echo "🧹 Generating Kotlin bindings…"
 rm -rf "$BINDINGS"
 mkdir -p "$BINDINGS"
+
+set -o pipefail
 "$UNIFFI_BIN" generate \
   --config "$ROOT/uniffi.toml" \
   --no-format \
   --library "$RUST_DYLIB" \
   --language kotlin \
-  --out-dir "$BINDINGS"
+  --out-dir "$BINDINGS" 2>&1 | tee /tmp/uniffi.log
 
 GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 if [[ ! -f "$GLUE_SRC" ]]; then
@@ -67,6 +69,7 @@ done
 # ——— 3) Build uniffi-bindgen tool ———
 echo "🔨 Building uniffi-bindgen…"
 cargo build --release -p polkabind-bindgen
+UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
 [[ -x "$UNIFFI_BIN" ]] || { echo "❌ missing bindgen tool $UNIFFI_BIN"; exit 1; }
 
 # ——— 4) Build the host cdylib with embedded metadata ———
