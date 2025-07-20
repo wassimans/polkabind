@@ -43,6 +43,9 @@ set -o pipefail
   --language kotlin \
   --out-dir "$BINDINGS" 2>&1 | tee /tmp/uniffi.log
 
+echo '### uniffi stderr' >> "$GITHUB_STEP_SUMMARY"
+cat /tmp/uniffi.log       >> "$GITHUB_STEP_SUMMARY"
+
 GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 if [[ ! -f "$GLUE_SRC" ]]; then
   echo "❌ UniFFI didn’t emit polkabind.kt"
