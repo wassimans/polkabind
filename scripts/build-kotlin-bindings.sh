@@ -35,6 +35,12 @@ for ABI in "${ABIS[@]}"; do
   fi
 done
 
+# Build host library & bindgen tool
+echo "🛠️  Building Rust host library & bindgen…"
+cargo build --release --manifest-path "$ROOT/Cargo.toml"
+[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing $RUST_DYLIB"; exit 1; }
+[[ -f "$UNIFFI_BIN" ]]  || { echo "❌ missing $UNIFFI_BIN";  exit 1; }
+
 # ——— 2) Generate Kotlin glue ———
 echo "🧹 Generating Kotlin bindings…"
 rm -rf "$BINDINGS"
