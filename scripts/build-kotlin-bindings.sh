@@ -23,8 +23,12 @@ cd "$ROOT"
 
 # 0)   Build host dylib *before* the Android loop ─────────────
 echo "🔨 Building host dylib first…"
+if [[ "$(uname)" != "Darwin" ]]; then
+  export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic"
+fi
 cargo build --release
-[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing $RUST_DYLIB"; exit 1; }
+unset RUSTFLAGS
+[[ -f "$RUST_DYLIB" ]]
 
 # ——— 1) Generate Kotlin glue ———
 echo "🧹 Generating Kotlin bindings…"
