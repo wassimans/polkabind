@@ -27,7 +27,6 @@ if [[ "$(uname)" != "Darwin" ]]; then
   export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic"
 fi
 cargo build --release
-unset RUSTFLAGS
 [[ -f "$RUST_DYLIB" ]]
 
 # ——— 1) Generate Kotlin glue ———
@@ -42,9 +41,6 @@ set -o pipefail
   --library "$RUST_DYLIB" \
   --language kotlin \
   --out-dir "$BINDINGS" 2>&1 | tee /tmp/uniffi.log
-
-echo '### uniffi stderr' >> "$GITHUB_STEP_SUMMARY"
-cat /tmp/uniffi.log       >> "$GITHUB_STEP_SUMMARY"
 
 GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 if [[ ! -f "$GLUE_SRC" ]]; then
@@ -71,14 +67,22 @@ done
 
 # ——— 3) Build uniffi-bindgen tool ———
 echo "🔨 Building uniffi-bindgen…"
+if [[ "$(uname)" != "Darwin" ]]; then
+  export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic"
+fi
+
 cargo build --release -p polkabind-bindgen
 UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
 [[ -x "$UNIFFI_BIN" ]] || { echo "❌ missing bindgen tool $UNIFFI_BIN"; exit 1; }
 
 # ——— 4) Build the host cdylib with embedded metadata ———
-echo "🛠️  Building Rust host library (the root polkabind crate)…"
-cargo build --release --manifest-path "$ROOT/Cargo.toml"
-[[ -f "$RUST_DYLIB" ]] || { echo "❌ missing host library $RUST_DYLIB"; exit 1; }
+# echo "🛠️  Building Rust host library (the root polkabind crate)…"
+# if [[ "$(uname)" != "Darwin" ]]; then
+#   export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic"
+# fi
+
+# cargo build --release --manifest-path "$ROOT/Cargo.toml"
+# [[ -f "$RUST_DYLIB" ]] || { echo "❌ missing host library $RUST_DYLIB"; exit 1; }
 
 # ——— 5) Lay out Android library module ———
 echo "📂 Setting up Android library module…"
