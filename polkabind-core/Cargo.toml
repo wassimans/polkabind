@@ -17,3 +17,6 @@ thiserror = { workspace = true }
 tokio = { workspace = true}
 uniffi = { workspace = true}
 uniffi_macros = { workspace = true }
+
+[profile.release.package.polkabind-core]
+strip = false

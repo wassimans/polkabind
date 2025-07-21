@@ -1,50 +1,56 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ---------------------------------------------------------------------
-# Export once, leave it in scope for every subsequent `cargo build`.
-# (The extra --no-gc-sections keeps the metadata from being stripped.)
+###############################################################################
+# 0. Global build flags
+###############################################################################
+# Linux needs the metadata kept alive **and** exported from the shared library.
 if [[ "$(uname)" != "Darwin" ]]; then
   export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--no-gc-sections"
 fi
-# ---------------------------------------------------------------------
+# Prevent Cargo’s `[profile.release] strip = true` from removing the symbols
+export CARGO_PROFILE_RELEASE_STRIP=none
 
-# ——— Paths ———
+###############################################################################
+# 1. Paths & helpers
+###############################################################################
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BINDINGS="$ROOT/bindings/kotlin"
 OUT_LIBMODULE="$ROOT/out/PolkabindKotlin"
 OUT_PKG="$ROOT/out/polkabind-kotlin-pkg"
 
-# correct dylib/so suffix
 case "$(uname)" in
-  Darwin) EXT=dylib ;; *) EXT=so ;;
+  Darwin) EXT=dylib;  NM="nm -gU" ;;  # Mach-O
+  *)      EXT=so;     NM="nm -D --defined-only" ;;  # ELF
 esac
 RUST_DYLIB="$ROOT/target/release/libpolkabind.$EXT"
 
-# ---------------------------------------------------------------------
-# 1. Build the whole workspace once (this gives us a *Linux* uniffi-bindgen)
-# ---------------------------------------------------------------------
-echo "🔨 Building workspace…"
+###############################################################################
+# 2. Build the entire workspace once
+###############################################################################
+echo "🔨 Building workspace (host tools + dylib)…"
 cargo build --release --workspace
+
 UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
-[[ -x "$UNIFFI_BIN" ]] || { echo "bindgen missing"; exit 1; }
+[[ -x "$UNIFFI_BIN" ]] || { echo "❌ uniffi-bindgen missing"; exit 1; }
 
-# ---------------------------------------------------------------------
-# 2. Re-build the host cdylib (polkabind-core) – metadata now exported
-# ---------------------------------------------------------------------
-cargo build --release -p polkabind-core
-[[ -f "$RUST_DYLIB" ]] || { echo "host dylib missing"; exit 1; }
+echo "bindgen version     : $("$UNIFFI_BIN" --version)"
+echo "host dylib produced : $RUST_DYLIB"
 
-# quick sanity check
-echo "UniFFI symbols in $RUST_DYLIB:"
-nm -D --defined-only "$RUST_DYLIB" | grep UNIFFI_META || {
-  echo "❌ metadata still missing"; exit 1; }
+# Quick sanity-check that metadata is present
+echo -e "\nUniFFI symbols in host dylib:"
+if ! $NM "$RUST_DYLIB" | grep -q UNIFFI_META_NAMESPACE_; then
+  echo "❌ UniFFI metadata NOT found; the dylib would be stripped."
+  exit 1
+fi
+$NM "$RUST_DYLIB" | grep UNIFFI_META | head
 
-# ---------------------------------------------------------------------
+###############################################################################
 # 3. Generate Kotlin bindings
-# ---------------------------------------------------------------------
-echo "🧹 Generating Kotlin bindings…"
+###############################################################################
+echo -e "\n🧹 Generating Kotlin bindings…"
 rm -rf "$BINDINGS" && mkdir -p "$BINDINGS"
+
 "$UNIFFI_BIN" generate \
   --config   "$ROOT/uniffi.toml" \
   --no-format \
@@ -55,11 +61,11 @@ rm -rf "$BINDINGS" && mkdir -p "$BINDINGS"
 GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 [[ -f "$GLUE_SRC" ]] || { echo "❌ polkabind.kt absent"; exit 1; }
 
-# ---------------------------------------------------------------------
-# 4. Cross-compile for Android ABIs
-# ---------------------------------------------------------------------
+###############################################################################
+# 4. Cross-compile Rust for the Android ABIs
+###############################################################################
 ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
-echo "🛠️  Building Android .so files…"
+echo -e "\n🛠️  Building Android .so files…"
 for ABI in "${ABIS[@]}"; do
   case $ABI in
     arm64-v8a)   TARGET=aarch64-linux-android ;;
@@ -72,18 +78,18 @@ for ABI in "${ABIS[@]}"; do
     || { echo "❌ .so for $TARGET missing"; exit 1; }
 done
 
-# ---------------------------------------------------------------------
-# 5. Minimal Android library module + Gradle wrapper
-# ---------------------------------------------------------------------
-echo "📂 Preparing Android library module…"
+###############################################################################
+# 5. Lay out a minimal Android library module
+###############################################################################
+echo -e "\n📂 Preparing Android library module…"
 MODULE_DIR="$OUT_LIBMODULE/polkabind-android"
 rm -rf "$MODULE_DIR"
 mkdir -p "$MODULE_DIR/src/main/java/dev/polkabind"
 
-# copy glue
+# -- glue
 cp "$GLUE_SRC" "$MODULE_DIR/src/main/java/dev/polkabind/"
 
-# jniLibs
+# -- jniLibs
 for ABI in "${ABIS[@]}"; do
   mkdir -p "$MODULE_DIR/src/main/jniLibs/$ABI"
   case $ABI in
@@ -96,6 +102,7 @@ for ABI in "${ABIS[@]}"; do
      "$MODULE_DIR/src/main/jniLibs/$ABI/"
 done
 
+# -- Gradle files
 cat >"$MODULE_DIR/settings.gradle.kts" <<'EOF'
 pluginManagement {
     repositories { google(); mavenCentral(); gradlePluginPortal() }
@@ -113,20 +120,29 @@ EOF
 
 cat >"$MODULE_DIR/build.gradle.kts" <<'EOF'
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-plugins { id("com.android.library"); kotlin("android"); id("maven-publish") }
+
+plugins {
+    id("com.android.library")
+    kotlin("android")
+    id("maven-publish")
+}
+
 dependencies {
     implementation("net.java.dev.jna:jna:5.13.0@aar")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }
+
 android {
-    namespace = "dev.polkabind"
+    namespace  = "dev.polkabind"
     compileSdk = 35
-    defaultConfig { minSdk = 24
+    defaultConfig {
+        minSdk = 24
         ndk { abiFilters += listOf("arm64-v8a","armeabi-v7a","x86_64","x86") }
     }
     publishing { singleVariant("release") }
     sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
 }
+
 afterEvaluate {
     publishing.publications.create<MavenPublication>("release") {
         groupId    = "dev.polkabind"
@@ -135,23 +151,29 @@ afterEvaluate {
         from(components["release"])
     }
 }
-tasks.withType<KotlinCompile> { kotlinOptions.jvmTarget = "1.8" }
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions.jvmTarget = "1.8"
+}
 EOF
 
-echo "🔧 Building AAR…"
+###############################################################################
+# 6. Build the AAR
+###############################################################################
+echo -e "\n🔧 Building AAR…"
 pushd "$MODULE_DIR" >/dev/null
 [[ -f gradlew ]] || gradle wrapper --gradle-version 8.6 --distribution-type all
 ./gradlew -q clean bundleReleaseAar
 popd >/dev/null
 
-# ---------------------------------------------------------------------
-# 6. Assemble distributable package
-# ---------------------------------------------------------------------
-echo "🚚 Bundling Kotlin package…"
+###############################################################################
+# 7. Assemble distributable package
+###############################################################################
+echo -e "\n🚚 Bundling Kotlin package…"
 rm -rf "$OUT_PKG" && mkdir -p "$OUT_PKG"
 cp "$ROOT/LICENSE" "$OUT_PKG/"
 cp "$ROOT/docs/readmes/kotlin/README.md" "$OUT_PKG/"
 cp -R "$MODULE_DIR/build/outputs/aar" "$OUT_PKG/aar"
 cp -R "$MODULE_DIR/src/main/java/dev/polkabind" "$OUT_PKG/src"
 
-echo "✅ Success."
+echo -e "\n✅ Success!  Kotlin package → $OUT_PKG"
