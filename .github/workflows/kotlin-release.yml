@@ -28,8 +28,10 @@ jobs:
           override: true
 
       - name: Install diagnostics tools
-        run: sudo apt-get update && sudo apt-get install -y \
-             libsigsegv-dev strace
+        run: |
+          sudo apt-get update
+          # provides /usr/bin/catchsegv
+          sudo apt-get install -y libsigsegv2 strace
 
       - name: Add Android Rust targets
         run: |
@@ -55,15 +57,6 @@ jobs:
 
       - name: Build Kotlin AAR & package
         run: scripts/build-kotlin-bindings.sh
-
-      - name: Upload UniFFI debug logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: uniffi-debug
-          path: |
-            /tmp/uniffi.log
-            /tmp/uniffi.dylib.nm
 
       - name: Upload diagnostics
         if: failure()            # only if the job failed
