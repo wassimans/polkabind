@@ -80,13 +80,13 @@ rm -rf "$BINDINGS" && mkdir -p "$BINDINGS"
   --language kotlin \
   --out-dir  "$BINDINGS"
 
-GLUE_SRC="$(find "$BINDINGS/dev/polkabind" -maxdepth 1 -type f -iname '*.kt' | head -n1)"
+GLUE_SRC="$(find "$BINDINGS" -type f -iname '*.kt' -print -quit)"
 
 if [[ -z "$GLUE_SRC" ]]; then
-  echo "❌ UniFFI did not emit any .kt glue in $BINDINGS/dev/polkabind"
+  echo "❌ UniFFI emitted no .kt glue under $BINDINGS"
   exit 1
 fi
-echo "   • Kotlin glue → $(basename "$GLUE_SRC")"
+echo "   • Kotlin glue → $(realpath --relative-to="$ROOT" "$GLUE_SRC")"
 
 ##############################################################################
 # 6.  Cross-compile stripped .so files for every Android ABI
