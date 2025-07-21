@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+env:
+  RUSTFLAGS: "-C link-arg=-Wl,--export-dynamic"
+
 # ——— Paths ———
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BINDINGS="$ROOT/bindings/kotlin"
@@ -28,7 +31,6 @@ if [[ "$(uname)" != "Darwin" ]]; then
   export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--no-gc-sections"
 fi
 cargo build --release --workspace
-unset RUSTFLAGS
 
 UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
 [[ -x "$UNIFFI_BIN" ]] || { echo "❌ missing bindgen tool $UNIFFI_BIN"; exit 1; }
@@ -38,7 +40,6 @@ if [[ "$(uname)" != "Darwin" ]]; then
   export RUSTFLAGS="-C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--no-gc-sections"
 fi
 cargo build --release -p polkabind-core
-unset RUSTFLAGS
 [[ -f "$RUST_DYLIB" ]] || { echo "❌ missing host library $RUST_DYLIB"; exit 1; }
 
 # ---------- quick symbol dump *before* generating ----------
@@ -51,6 +52,7 @@ ldd "$UNIFFI_BIN" || true            # don’t abort even if it fails
 echo -e "\n— ldd libpolkabind.so —"
 ldd "$RUST_DYLIB"    || true
 
+nm -D target/release/libpolkabind.so | grep UNIFFI_META
 # ————————————————————————————————————————————————————————————
 # ❸  Generate Kotlin glue
 echo "🧹 Generating Kotlin bindings…"
