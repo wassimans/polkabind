@@ -57,16 +57,32 @@ echo "🧹 Generating Kotlin bindings…"
 rm -rf "$BINDINGS"
 mkdir -p "$BINDINGS"
 
-"$UNIFFI_BIN" generate \
-  --config "$ROOT/uniffi.toml" \
-  --no-format \
-  --library "$RUST_DYLIB" \
-  --language kotlin \
-  --out-dir "$BINDINGS" 2>&1 | tee /tmp/uniffi.log
+# Helper that tries catchsegv; if that prints nothing fall back to strace
+run_bindgen() {
+  echo "❯ catchsegv $*"
+  if catchsegv "$@"; then
+    return 0
+  fi
+
+  echo -e "\n⚠️  catchsegv printed nothing, retrying under strace…"
+  strace -f -o /tmp/uniffi.strace "$@"
+}
+
+set -o pipefail
+run_bindgen \
+  "$UNIFFI_BIN" generate \
+    --config   "$ROOT/uniffi.toml" \
+    --no-format \
+    --library  "$RUST_DYLIB" \
+    --language kotlin \
+    --out-dir  "$BINDINGS" 2>&1 | tee /tmp/uniffi.log
 
 GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 if [[ ! -f "$GLUE_SRC" ]]; then
   echo "❌ UniFFI didn’t emit polkabind.kt"
+  echo "ℹ️  Saved logs:"
+  echo "   • /tmp/uniffi.log      (stdout/stderr)"
+  [ -f /tmp/uniffi.strace ] && echo "   • /tmp/uniffi.strace   (syscall trace)"
   exit 1
 fi
 
