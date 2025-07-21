@@ -52,11 +52,14 @@ jobs:
       - name: Build Kotlin AAR & package
         run: scripts/build-kotlin-bindings.sh
 
-      - name: Upload uniffi stderr
+      - name: Upload UniFFI debug logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: uniffi-log
-          path: /tmp/uniffi.log
+          name: uniffi-debug
+          path: |
+            /tmp/uniffi.log
+            /tmp/uniffi.dylib.nm
 
       - name: Upload Kotlin package artifact
         uses: actions/upload-artifact@v4

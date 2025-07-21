@@ -41,6 +41,10 @@ cargo build --release -p polkabind-core
 unset RUSTFLAGS
 [[ -f "$RUST_DYLIB" ]] || { echo "❌ missing host library $RUST_DYLIB"; exit 1; }
 
+# ---------- quick symbol dump *before* generating ----------
+echo -e "\n— nm -D | head —\n" > /tmp/uniffi.dylib.nm
+nm -D --defined-only "$RUST_DYLIB" | head -n 40 >> /tmp/uniffi.dylib.nm 2>&1
+
 # ————————————————————————————————————————————————————————————
 # ❸  Generate Kotlin glue
 echo "🧹 Generating Kotlin bindings…"
