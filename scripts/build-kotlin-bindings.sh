@@ -45,6 +45,12 @@ unset RUSTFLAGS
 echo -e "\n— nm -D | head —\n" > /tmp/uniffi.dylib.nm
 nm -D --defined-only "$RUST_DYLIB" | head -n 40 >> /tmp/uniffi.dylib.nm 2>&1
 
+echo -e "\n— ldd uniffi-bindgen —"
+ldd "$UNIFFI_BIN" || true            # don’t abort even if it fails
+
+echo -e "\n— ldd libpolkabind.so —"
+ldd "$RUST_DYLIB"    || true
+
 # ————————————————————————————————————————————————————————————
 # ❸  Generate Kotlin glue
 echo "🧹 Generating Kotlin bindings…"
