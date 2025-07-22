@@ -143,6 +143,9 @@ EOF
 cat >"$MODULE_DIR/build.gradle.kts" <<'EOF'
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+group = "dev.polkabind"
+version = findProperty("releaseVersion") as String
+
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -172,6 +175,28 @@ afterEvaluate {
         version    = "1.0.0-SNAPSHOT"
         from(components["release"])
     }
+}
+
+publishing {
+  publications {
+    create<MavenPublication>("release") {
+      from(components["release"])
+      // these match group & version above
+      groupId    = project.group.toString()
+      artifactId = "polkabind-android"
+      version    = project.version.toString()
+    }
+  }
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url  = uri("https://maven.pkg.github.com/Polkabind/polkabind-kotlin-pkg")
+      credentials {
+        username = providers.environmentVariable("GITHUB_ACTOR")
+        password = providers.environmentVariable("GITHUB_TOKEN")
+      }
+    }
+  }
 }
 
 tasks.withType<KotlinCompile>().configureEach {

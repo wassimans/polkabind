@@ -58,6 +58,14 @@ jobs:
       - name: Build Kotlin AAR & package
         run: scripts/build-kotlin-bindings.sh
 
+      - name: Publish AAR to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd out/PolkabindKotlin/polkabind-android
+          ./gradlew publishReleasePublicationToGitHubPackagesRepository \
+            -PreleaseVersion=${GITHUB_REF#refs/tags/}
+
       - name: Upload Kotlin package artifact
         uses: actions/upload-artifact@v4
         with:
