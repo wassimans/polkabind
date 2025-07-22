@@ -199,3 +199,52 @@ cp -R "$MODULE_DIR/build/outputs/aar" "$OUT_PKG/aar"
 cp -R "$MODULE_DIR/src/main/java/dev/polkabind" "$OUT_PKG/src"
 
 echo -e "\n✅ Success!  Kotlin package → $OUT_PKG"
+
+###############################################################################
+# 8. Layout Maven like package
+###############################################################################
+# Emit a POM file alongside the AAR
+VERSION=${GITHUB_REF_NAME#v}
+GROUP=dev.polkabind
+ARTIFACT=polkabind-android
+
+OUT_RELEASES="$ROOT/out/polkabind-kotlin-pkg/releases/$GROUP/$ARTIFACT/$VERSION"
+mkdir -p "$OUT_RELEASES"
+cp "$MODULE_DIR/build/outputs/aar/$ARTIFACT-release.aar" \
+   "$OUT_RELEASES/$ARTIFACT-$VERSION.aar"
+
+# generate a minimal POM:
+cat >"$OUT_RELEASES/$ARTIFACT-$VERSION.pom" <<EOF
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>${GROUP}</groupId>
+  <artifactId>${ARTIFACT}</artifactId>
+  <version>${VERSION}</version>
+  <packaging>aar</packaging>
+</project>
+EOF
+
+# generate maven-metadata.xml
+METADATA_DIR="$ROOT/out/polkabind-kotlin-pkg/releases/$GROUP/$ARTIFACT"
+cd "$METADATA_DIR"
+# collect all versions
+VERSIONS=($(ls -1d */))
+cat > maven-metadata.xml <<EOF
+<metadata>
+  <groupId>${GROUP}</groupId>
+  <artifactId>${ARTIFACT}</artifactId>
+  <versioning>
+    <latest>${VERSION}</latest>
+    <release>${VERSION}</release>
+    <versions>
+$(for v in "${VERSIONS[@]}"; do
+     echo "      <version>${v%/}</version>"
+   done)
+    </versions>
+    <lastUpdated>$(date -u +'%Y%m%d%H%M%S')</lastUpdated>
+  </versioning>
+</metadata>
+EOF
