@@ -85,14 +85,12 @@ GLUE_SRC="$BINDINGS/dev/polkabind/polkabind.kt"
 ###############################################################################
 # 4. Cross-compile Rust for the Android ABIs   (now stripped afterwards)
 ###############################################################################
-ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
+ABIS=(arm64-v8a armeabi-v7a)
 echo -e "\n🛠️  Building Android .so files…"
 for ABI in "${ABIS[@]}"; do
   case $ABI in
     arm64-v8a)   TARGET=aarch64-linux-android ;;
     armeabi-v7a) TARGET=armv7-linux-androideabi ;;
-    x86_64)      TARGET=x86_64-linux-android ;;
-    x86)         TARGET=i686-linux-android ;;
   esac
 
   cargo ndk --target "$TARGET" --platform 21 build --release
@@ -121,8 +119,6 @@ for ABI in "${ABIS[@]}"; do
   case $ABI in
     arm64-v8a)   TARGET=aarch64-linux-android ;;
     armeabi-v7a) TARGET=armv7-linux-androideabi ;;
-    x86_64)      TARGET=x86_64-linux-android ;;
-    x86)         TARGET=i686-linux-android ;;
   esac
   cp "$ROOT/target/${TARGET}/release/libpolkabind.so" \
      "$MODULE_DIR/src/main/jniLibs/$ABI/"
@@ -163,7 +159,7 @@ android {
     compileSdk = 35
     defaultConfig {
         minSdk = 24
-        ndk { abiFilters += listOf("arm64-v8a","armeabi-v7a","x86_64","x86") }
+        ndk { abiFilters += listOf("arm64-v8a","armeabi-v7a") }
     }
     publishing { singleVariant("release") }
     sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
