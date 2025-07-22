@@ -58,6 +58,12 @@ jobs:
       - name: Build Kotlin AAR & package
         run: scripts/build-kotlin-bindings.sh
 
+      - name: Upload Kotlin package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: polkabind-kotlin-pkg
+          path: out/polkabind-kotlin-pkg
+
   publish:
     name: Publish to polkabind-kotlin-pkg repo
     needs: build

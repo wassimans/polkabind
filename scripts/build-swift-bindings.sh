@@ -14,10 +14,10 @@ UNIFFI_BIN="$ROOT/target/release/uniffi-bindgen"
 HOST_DYLIB="$ROOT/target/release/libpolkabind.dylib"
 
 ##############################################################################
-# 1.  Build host dylib – needed only for UniFFI code-gen
+# 1.  Build host Polkabind bindgen and dylib binaries
 ##############################################################################
 echo "🛠️  Building Rust dylib (host)…"
-cargo build --release -p polkabind-core
+cargo build --release --manifest-path "$ROOT/Cargo.toml"
 [[ -f "$HOST_DYLIB" ]] || { echo "❌ missing $HOST_DYLIB"; exit 1; }
 
 ##############################################################################
