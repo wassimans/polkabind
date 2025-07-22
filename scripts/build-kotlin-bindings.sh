@@ -188,15 +188,15 @@ publishing {
     }
   }
   repositories {
-    maven {
-      name = "GitHubPackages"
-      url  = uri("https://maven.pkg.github.com/Polkabind/polkabind-kotlin-pkg")
-      credentials {
-        username = providers.environmentVariable("GITHUB_ACTOR")
-        password = providers.environmentVariable("GITHUB_TOKEN")
+      maven {
+        name = "GitHubPackages"
+        url  = uri("https://maven.pkg.github.com/Polkabind/polkabind-kotlin-pkg")
+        credentials {
+          username.set(providers.environmentVariable("GITHUB_ACTOR"))
+          password.set(providers.environmentVariable("GITHUB_TOKEN"))
+        }
       }
-    }
-  }
+   }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
