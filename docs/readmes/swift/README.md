@@ -1,4 +1,4 @@
-# Polkabind
+# Polkabind - Swift
 
 **Seamless interaction with any Polkadot SDK based chain for Swift**
 
