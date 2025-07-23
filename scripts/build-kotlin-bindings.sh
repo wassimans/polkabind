@@ -143,9 +143,6 @@ EOF
 cat >"$MODULE_DIR/build.gradle.kts" <<'EOF'
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-group = "dev.polkabind"
-version = findProperty("releaseVersion") as String
-
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -177,28 +174,6 @@ afterEvaluate {
     }
 }
 
-publishing {
-  publications {
-    create<MavenPublication>("release") {
-      from(components["release"])
-      // these match group & version above
-      groupId    = project.group.toString()
-      artifactId = "polkabind-android"
-      version    = project.version.toString()
-    }
-  }
-  repositories {
-      maven {
-        name = "GitHubPackages"
-        url  = uri("https://maven.pkg.github.com/Polkabind/polkabind-kotlin-pkg")
-        credentials {
-          username.set(providers.environmentVariable("GITHUB_ACTOR"))
-          password.set(providers.environmentVariable("GITHUB_TOKEN"))
-        }
-      }
-   }
-}
-
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }
@@ -223,53 +198,32 @@ cp "$ROOT/docs/readmes/kotlin/README.md" "$OUT_PKG/"
 cp -R "$MODULE_DIR/build/outputs/aar" "$OUT_PKG/aar"
 cp -R "$MODULE_DIR/src/main/java/dev/polkabind" "$OUT_PKG/src"
 
-echo -e "\n✅ Success!  Kotlin package → $OUT_PKG"
 
 ###############################################################################
-# 8. Layout Maven like package
+# 8. Inject minimal Gradle project for JitPack / maven-publish
 ###############################################################################
-# Emit a POM file alongside the AAR
-VERSION=${GITHUB_REF_NAME#v}
-GROUP=dev.polkabind
-ARTIFACT=polkabind-android
-
-OUT_RELEASES="$ROOT/out/polkabind-kotlin-pkg/releases/$GROUP/$ARTIFACT/$VERSION"
-mkdir -p "$OUT_RELEASES"
-cp "$MODULE_DIR/build/outputs/aar/$ARTIFACT-release.aar" \
-   "$OUT_RELEASES/$ARTIFACT-$VERSION.aar"
-
-# generate a minimal POM:
-cat >"$OUT_RELEASES/$ARTIFACT-$VERSION.pom" <<EOF
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>${GROUP}</groupId>
-  <artifactId>${ARTIFACT}</artifactId>
-  <version>${VERSION}</version>
-  <packaging>aar</packaging>
-</project>
+echo -e "\n🛠️  Adding tiny Gradle project for JitPack…"
+cat >"$OUT_PKG/settings.gradle.kts" <<'EOF'
+rootProject.name = "polkabind-android"
 EOF
 
-# generate maven-metadata.xml
-METADATA_DIR="$ROOT/out/polkabind-kotlin-pkg/releases/$GROUP/$ARTIFACT"
-cd "$METADATA_DIR"
-# collect all versions
-VERSIONS=($(ls -1d */))
-cat > maven-metadata.xml <<EOF
-<metadata>
-  <groupId>${GROUP}</groupId>
-  <artifactId>${ARTIFACT}</artifactId>
-  <versioning>
-    <latest>${VERSION}</latest>
-    <release>${VERSION}</release>
-    <versions>
-$(for v in "${VERSIONS[@]}"; do
-     echo "      <version>${v%/}</version>"
-   done)
-    </versions>
-    <lastUpdated>$(date -u +'%Y%m%d%H%M%S')</lastUpdated>
-  </versioning>
-</metadata>
+cat >"$OUT_PKG/build.gradle.kts" <<'EOF'
+plugins {
+  `maven-publish`
+}
+
+group = "dev.polkabind"
+// version is picked up from the Git tag by JitPack
+
+publishing {
+  publications {
+    create<MavenPublication>("aar") {
+      artifactId = "polkabind-android"
+      // point at the prebuilt AAR in this zip
+      artifact("$projectDir/aar/polkabind-android-release.aar")
+    }
+  }
+}
 EOF
+
+echo -e "\n✅ Success – Kotlin package ready at $OUT_PKG"
