@@ -200,6 +200,7 @@ EOF
 cat >"$OUT_PKG/build.gradle.kts" <<'EOF'
 plugins {
   `maven-publish`
+  `java-library`
 }
 
 group = "com.github.Polkabind"
