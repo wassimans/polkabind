@@ -2000,7 +2000,7 @@ dependencies = [
 
 [[package]]
 name = "polkabind-core"
-version = "0.1.91"
+version = "0.2.1"
 dependencies = [
  "hex",
  "serde",
