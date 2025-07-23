@@ -81,6 +81,7 @@ flowchart TD
   class CORE_CI,SWIFT_CI pipeline
   class D2 release
   ```
+For *Kotlin*/*Android*, it's roughly the same process, but we publish to (Jitpack.io)[https://jitpack.io/#Polkabind/polkabind-kotlin-pkg/], so it's really easy for any Android app to fetch and use the latest `polkabind-kotlin-pkg`.
 
 # Show me the code
 
@@ -119,13 +120,32 @@ Behind the scenes **Polkabind** executes that same Rust (left column) but
 exposes a single, ergonomic Swift API.
 
 # What’s in examples/ ?
-A ready to launch iOS project, featuring a balance transfer of from *Alice*'s account to *Bob*'s account. You can check the accounts initial balances after launching a local node with Chopsticks (see below).
+A ready to launch iOS and Android app, featuring a balance transfer of from *Alice*'s account to *Bob*'s account. You can check the accounts initial balances after launching a local node with Chopsticks (see below).
 
 ```
 examples/
-└── app/iOS/PolkabindExample
-    ├── PolkabindExampleApp.swift   ← UIApplication entry-point
-    └── ContentView.swift          ← 25-line demo UI shown below
+└── app
+    ├── Android
+    │   ├── app
+    │   │   ├── build
+    │   │   ├── build.gradle.kts
+    │   │   ├── proguard-rules.pro
+    │   │   └── src
+    │   ├── build.gradle.kts
+    │   ├── gradle
+    │   │   ├── libs.versions.toml
+    │   │   └── wrapper
+    │   ├── gradle.properties
+    │   ├── gradlew
+    │   ├── gradlew.bat
+    │   ├── local.properties
+    │   └── settings.gradle.kts
+    └── iOS
+        └── PolkabindExample
+            ├── PolkabindExample
+            ├── PolkabindExample.xcodeproj
+            ├── PolkabindExampleTests
+            └── PolkabindExampleUITests
 ```
 
 SwiftUI snippet used in the the Swift example:
@@ -148,7 +168,7 @@ Button("Send Transfer") {
 
 ```
 
-## Quick local test
+## Quick local test (iOS)
 
 1. launch an instant-finality Polkadot dev chain using Chopsticks.
 ``` shell
@@ -180,6 +200,78 @@ npx @acala-network/chopsticks \
 </p>
 
 That’s all: no Rust toolchain, no Subxt boilerplate, just a tiny binary framework you can ship in any iOS app.
+
+## Quick local test (Android)
+
+1. launch an instant-finality Polkadot dev chain using Chopsticks.
+``` shell
+npx @acala-network/chopsticks \
+  --config=https://raw.githubusercontent.com/AcalaNetwork/chopsticks/master/configs/polkadot.yml \
+  --build-block-mode Instant
+```
+
+2. Forward the RPC port into the emulator:
+
+``` shell
+adb reverse tcp:8000 tcp:8000
+```
+
+3. open examples/app/Android in Android Studio.
+
+3. Add the binary package:
+
+  A. In your settings.gradle.kts (project root) make sure you have JitPack:
+  ```kotlin
+    dependencyResolutionManagement {
+      repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+      }
+    }
+  ```
+  B. In app/build.gradle.kts add:
+  ```kotlin
+  dependencies {
+    // … other deps …
+    implementation("com.github.Polkabind:polkabind-kotlin-pkg:<latest-tag>")
+  }
+  ```
+  Make sure to grab the latest Kotlin package release tag and replace the placeholder.
+  
+  C. Allow cleartext traffic, we’re talking plain HTTP, so in your AndroidManifest.xml:
+  ```xml
+  <application
+    …
+    android:usesCleartextTraffic="true"
+    android:networkSecurityConfig="@xml/network_security_config">
+    …
+  </application>
+  ```
+  D. And add res/xml/network_security_config.xml:
+  ```xml
+  <?xml version="1.0" encoding="utf-8"?>
+  <network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+  </network-security-config>
+  ```
+  
+4. Hit run on an emulator.
+
+5. tap "Send Transfer":
+  - In the emulator you’ll see ✅ Success!; in the Chopsticks console the extrinsic is instantly finalised.
+  
+<p align="center">
+  <img src="assets/android-ready.png" alt="Ready" width="30%">
+  <img src="assets/android-sending.png" alt="Sending" width="30%">
+  <img src="assets/android-success.png" alt="Success" width="30%">
+</p>
+
+<p align="center">
+  <img src="assets/balances.png" alt="Balances" width="100%">
+</p>
+
+That’s all: no Rust toolchain, no Subxt boilerplate, just a single Gradle dependency and a tiny AAR you ship with your APK.
 
 ## Status
 
