@@ -146,7 +146,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("maven-publish")
 }
 
 dependencies {
@@ -163,15 +162,6 @@ android {
     }
     publishing { singleVariant("release") }
     sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
-}
-
-afterEvaluate {
-    publishing.publications.create<MavenPublication>("release") {
-        groupId    = "dev.polkabind"
-        artifactId = "polkabind-android"
-        version    = "1.0.0-SNAPSHOT"
-        from(components["release"])
-    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
