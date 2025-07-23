@@ -94,10 +94,14 @@ jobs:
       - name: Replace contents & push
         run: |
           cd target-repo
-          mkdir -p releases
-          cp -r ../pkg/releases/* ./releases/
-          git add releases
-          git commit -m "Release ${{ github.ref_name }}" || echo "no changes"
-          git push
+          git checkout main
+          git pull
+          # wipe everything except .git and .github
+          find . -maxdepth 1 -mindepth 1 ! -name '.git' ! -path './.github' -exec rm -rf {} +
+          # copy in the published Kotlin package
+          cp -R ../pkg/* .
+          git add .
+          git commit -m "Release ${{ github.ref_name }}" || echo "Nothing to commit"
+          git push origin main
           git tag ${{ github.ref_name }}
           git push origin refs/tags/${{ github.ref_name }}
