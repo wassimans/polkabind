@@ -81,7 +81,7 @@ flowchart TD
   class CORE_CI,SWIFT_CI pipeline
   class D2 release
   ```
-For *Kotlin*/*Android*, it's roughly the same process, but we publish to (Jitpack.io)[https://jitpack.io/#Polkabind/polkabind-kotlin-pkg/], so it's really easy for any Android app to fetch and use the latest `polkabind-kotlin-pkg`.
+For *Kotlin*/*Android*, it's roughly the same process, but we publish to [Jitpack.io](https://jitpack.io/#Polkabind/polkabind-kotlin-pkg/), so it's really easy for any Android app to fetch and use the latest `polkabind-kotlin-pkg`.
 
 # Show me the code
 
@@ -114,6 +114,14 @@ client
 ```swift
 // one blocking FFI call – done 🎉
 try Polkabind.doTransfer(destHex: destHex, amount: amt)
+```
+
+## Polkabind (Kotlin)
+```kotlin
+import dev.polkabind.doTransfer
+// one blocking FFI call – done 🎉
+...
+doTransfer(destHex, amt.toULong())
 ```
 
 Behind the scenes **Polkabind** executes that same Rust (left column) but
@@ -168,6 +176,28 @@ Button("Send Transfer") {
 
 ```
 
+Compose UI snippet used in the the Kotlin example:
+
+```kotlin
+Button(onClick = {
+  // kick off a background thread for the blocking FFI call
+  Thread {
+    runCatching {
+      val amt = amountText.toLongOrNull()
+        ?: throw IllegalArgumentException("Bad amount")
+      doTransfer(destHex, amt.toULong())
+    }.fold(
+        onSuccess  = { status = "✅ Success!" },
+        onFailure  = { status = "❌ ${it.message}" }
+    )
+  }.start()
+    status = "⏳ Sending…"
+}, modifier = Modifier.fillMaxWidth()) {
+    Text("Send Transfer")
+}
+
+```
+
 ## Quick local test (iOS)
 
 1. launch an instant-finality Polkadot dev chain using Chopsticks.
@@ -218,9 +248,9 @@ adb reverse tcp:8000 tcp:8000
 
 3. open examples/app/Android in Android Studio.
 
-3. Add the binary package:
+4. Add the binary package:
 
-  A. In your settings.gradle.kts (project root) make sure you have JitPack:
+  - In your settings.gradle.kts (project root) make sure you have JitPack:
   ```kotlin
     dependencyResolutionManagement {
       repositories {
@@ -230,7 +260,7 @@ adb reverse tcp:8000 tcp:8000
       }
     }
   ```
-  B. In app/build.gradle.kts add:
+  - In app/build.gradle.kts add:
   ```kotlin
   dependencies {
     // … other deps …
@@ -239,7 +269,7 @@ adb reverse tcp:8000 tcp:8000
   ```
   Make sure to grab the latest Kotlin package release tag and replace the placeholder.
   
-  C. Allow cleartext traffic, we’re talking plain HTTP, so in your AndroidManifest.xml:
+  - Allow cleartext traffic, we’re talking plain HTTP, so in your AndroidManifest.xml:
   ```xml
   <application
     …
@@ -248,7 +278,7 @@ adb reverse tcp:8000 tcp:8000
     …
   </application>
   ```
-  D. And add res/xml/network_security_config.xml:
+  - And add res/xml/network_security_config.xml:
   ```xml
   <?xml version="1.0" encoding="utf-8"?>
   <network-security-config>
@@ -256,9 +286,9 @@ adb reverse tcp:8000 tcp:8000
   </network-security-config>
   ```
   
-4. Hit run on an emulator.
+5. Hit run on an emulator.
 
-5. tap "Send Transfer":
+6. tap "Send Transfer":
   - In the emulator you’ll see ✅ Success!; in the Chopsticks console the extrinsic is instantly finalised.
   
 <p align="center">
