@@ -251,9 +251,24 @@ typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureStr
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_DO_TRANSFER
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FUNC_DO_TRANSFER
-void uniffi_polkabind_fn_func_do_transfer(RustBuffer dest_hex, uint64_t amount, RustCallStatus *_Nonnull out_status
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_CLONE_POLKABIND
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_CLONE_POLKABIND
+void*_Nonnull uniffi_polkabind_fn_clone_polkabind(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FREE_POLKABIND
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_FREE_POLKABIND
+void uniffi_polkabind_fn_free_polkabind(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_CONSTRUCTOR_POLKABIND_NEW
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_CONSTRUCTOR_POLKABIND_NEW
+void*_Nonnull uniffi_polkabind_fn_constructor_polkabind_new(RustBuffer ws_url, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_METHOD_POLKABIND_DO_TRANSFER
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_FN_METHOD_POLKABIND_DO_TRANSFER
+void uniffi_polkabind_fn_method_polkabind_do_transfer(void*_Nonnull ptr, RustBuffer dest_hex, uint64_t amount, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_FFI_POLKABIND_RUSTBUFFER_ALLOC
@@ -536,9 +551,15 @@ void ffi_polkabind_rust_future_free_void(uint64_t handle
 void ffi_polkabind_rust_future_complete_void(uint64_t handle, RustCallStatus *_Nonnull out_status
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_DO_TRANSFER
-#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_FUNC_DO_TRANSFER
-uint16_t uniffi_polkabind_checksum_func_do_transfer(void
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_METHOD_POLKABIND_DO_TRANSFER
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_METHOD_POLKABIND_DO_TRANSFER
+uint16_t uniffi_polkabind_checksum_method_polkabind_do_transfer(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_CONSTRUCTOR_POLKABIND_NEW
+#define UNIFFI_FFIDEF_UNIFFI_POLKABIND_CHECKSUM_CONSTRUCTOR_POLKABIND_NEW
+uint16_t uniffi_polkabind_checksum_constructor_polkabind_new(void
     
 );
 #endif

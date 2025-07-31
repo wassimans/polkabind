@@ -151,6 +151,7 @@ plugins {
 dependencies {
     implementation("net.java.dev.jna:jna:5.13.0@aar")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("androidx.annotation:annotation:1.6.0")
 }
 
 android {
@@ -167,6 +168,11 @@ android {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }
+EOF
+
+# -- Opt-in to AndroidX
+cat >"$MODULE_DIR/gradle.properties" <<EOF
+android.useAndroidX=true
 EOF
 
 ###############################################################################

@@ -56,7 +56,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("com.github.Polkabind:polkabind-kotlin-pkg:v0.2.2")
+    //implementation("com.github.Polkabind:polkabind-kotlin-pkg:v0.2.2")
+    implementation(files("libs/polkabind-android-release.aar"))
     implementation("net.java.dev.jna:jna:5.13.0@aar")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }

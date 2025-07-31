@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CF0EE84E2E312E480087BF17 /* Polkabind in Frameworks */ = {isa = PBXBuildFile; productRef = CF0EE84D2E312E480087BF17 /* Polkabind */; };
+		CFDD53612E3BCF3400C6B29B /* Polkabind in Frameworks */ = {isa = PBXBuildFile; productRef = CFDD53602E3BCF3400C6B29B /* Polkabind */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF0EE84E2E312E480087BF17 /* Polkabind in Frameworks */,
+				CFDD53612E3BCF3400C6B29B /* Polkabind in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,7 +126,7 @@
 			name = PolkabindExample;
 			packageProductDependencies = (
 				CF2F6D8C2E20371E00B07C20 /* Polkabind */,
-				CF0EE84D2E312E480087BF17 /* Polkabind */,
+				CFDD53602E3BCF3400C6B29B /* Polkabind */,
 			);
 			productName = PolkabindExample;
 			productReference = CF2F6D452E20075200B07C20 /* PolkabindExample.app */;
@@ -211,7 +211,7 @@
 			mainGroup = CF2F6D3C2E20075200B07C20;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CF0EE84C2E312E480087BF17 /* XCRemoteSwiftPackageReference "polkabind-swift-pkg" */,
+				CFDD535F2E3BCF3400C6B29B /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CF2F6D462E20075200B07C20 /* Products */;
@@ -569,24 +569,19 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		CF0EE84C2E312E480087BF17 /* XCRemoteSwiftPackageReference "polkabind-swift-pkg" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Polkabind/polkabind-swift-pkg";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		CFDD535F2E3BCF3400C6B29B /* XCLocalSwiftPackageReference "../../../../out/polkabind-swift-pkg" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../../../out/polkabind-swift-pkg";
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CF0EE84D2E312E480087BF17 /* Polkabind */ = {
+		CF2F6D8C2E20371E00B07C20 /* Polkabind */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CF0EE84C2E312E480087BF17 /* XCRemoteSwiftPackageReference "polkabind-swift-pkg" */;
 			productName = Polkabind;
 		};
-		CF2F6D8C2E20371E00B07C20 /* Polkabind */ = {
+		CFDD53602E3BCF3400C6B29B /* Polkabind */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Polkabind;
 		};

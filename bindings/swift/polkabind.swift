@@ -456,6 +456,137 @@ fileprivate struct FfiConverterString: FfiConverter {
 }
 
 
+
+
+public protocol PolkabindProtocol: AnyObject, Sendable {
+    
+    func doTransfer(destHex: String, amount: UInt64) throws 
+    
+}
+open class Polkabind: PolkabindProtocol, @unchecked Sendable {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_polkabind_fn_clone_polkabind(self.pointer, $0) }
+    }
+public convenience init(wsUrl: String) {
+    let pointer =
+        try! rustCall() {
+    uniffi_polkabind_fn_constructor_polkabind_new(
+        FfiConverterString.lower(wsUrl),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_polkabind_fn_free_polkabind(pointer, $0) }
+    }
+
+    
+
+    
+open func doTransfer(destHex: String, amount: UInt64)throws   {try rustCallWithError(FfiConverterTypeTransferError_lift) {
+    uniffi_polkabind_fn_method_polkabind_do_transfer(self.uniffiClonePointer(),
+        FfiConverterString.lower(destHex),
+        FfiConverterUInt64.lower(amount),$0
+    )
+}
+}
+    
+
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePolkabind: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Polkabind
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Polkabind {
+        return Polkabind(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Polkabind) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Polkabind {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Polkabind, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePolkabind_lift(_ pointer: UnsafeMutableRawPointer) throws -> Polkabind {
+    return try FfiConverterTypePolkabind.lift(pointer)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePolkabind_lower(_ value: Polkabind) -> UnsafeMutableRawPointer {
+    return FfiConverterTypePolkabind.lower(value)
+}
+
+
+
+
 public enum TransferError: Swift.Error {
 
     
@@ -540,13 +671,6 @@ extension TransferError: Foundation.LocalizedError {
 
 
 
-public func doTransfer(destHex: String, amount: UInt64)throws   {try rustCallWithError(FfiConverterTypeTransferError_lift) {
-    uniffi_polkabind_fn_func_do_transfer(
-        FfiConverterString.lower(destHex),
-        FfiConverterUInt64.lower(amount),$0
-    )
-}
-}
 
 private enum InitializationResult {
     case ok
@@ -563,7 +687,10 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_polkabind_checksum_func_do_transfer() != 19919) {
+    if (uniffi_polkabind_checksum_method_polkabind_do_transfer() != 19168) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_polkabind_checksum_constructor_polkabind_new() != 20239) {
         return InitializationResult.apiChecksumMismatch
     }
 

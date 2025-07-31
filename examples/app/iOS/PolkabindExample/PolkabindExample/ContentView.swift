@@ -12,12 +12,16 @@ struct ContentView: View {
     @State private var destHex =
         "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"
     @State private var amountText = "1000000000000"
+    @State private var url = "ws://127.0.0.1:8000"
     @State private var status = "Ready"
 
     var body: some View {
         NavigationView {
             Form {
                 Section("Transfer") {
+                    TextField("WebSocket URL", text: $url)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                     TextField("Destination hex", text: $destHex)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
@@ -39,6 +43,7 @@ struct ContentView: View {
     }
 
     private func sendTransfer() {
+        let client = Polkabind.init(wsUrl: "ws://127.0.0.1:8000")
         print("🔔 sendTransfer() called")
         guard let amt = UInt64(amountText) else {
             status = "❌ Bad amount"
@@ -49,7 +54,7 @@ struct ContentView: View {
         DispatchQueue.global(qos: .userInitiated).async {
             print("🔔 Background task starting…")
             let result: Result<Void, Error> = Result {
-                try Polkabind.doTransfer(destHex: destHex, amount: amt)
+                try client.doTransfer(destHex: destHex, amount: amt)
             }
             DispatchQueue.main.async {
                 switch result {
