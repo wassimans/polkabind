@@ -15,27 +15,6 @@
 # === Build script outputs ===
 /out/
 
-# If you happen to keep any other intermediate framework bundles:
-**/tmp-frameworks/
-
-# === Xcode / SwiftPM ===
-# Xcode
-*.xcworkspace
-**/xcuserdata/
-**/DerivedData/
-/build/
-/.build/
-
-# Swift Package Manager
-/.build/
-/Packages/
-
-# Carthage (if ever used)
-/Carthage/Build/
-
-# CocoaPods (if ever used)
-/Pods/
-
 # === macOS Finder ===
 .DS_Store
 
@@ -43,4 +22,32 @@
 db.sqlite
 db.sqlite-shm
 db.sqlite-wal
+**/tmp-frameworks/
+
+# Xcode workspace & user‐specific data
+**/*.xcworkspace/
+**/*.xcuserdatad/
+**/*.xcscmblueprint
+**/*Scheme.xcscheme
+*.xccheckout
+
+# Xcode project user‐specific state
+**/*.xcuserstate
+
+# Swift Package Manager artifacts
+**/Package.resolved
+**/.swiftpm/
+
+# Build products (redundant with /build/ & /.build/, but safe)
+**/Build/
+**/DerivedData/
+
+# Xcode “shared” scheme info (if you are not committing shared schemes)
+**/xcshareddata/
+
+# Cocoa/Carthage/etc. (if you ever pull in other deps)
+Carthage/Build/
+Pods/
+
+# Android Studio for the Android example
 examples/app/Android/.idea/
