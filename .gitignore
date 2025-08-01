@@ -25,14 +25,8 @@ db.sqlite-wal
 **/tmp-frameworks/
 
 # Xcode workspace & user‐specific data
-**/*.xcworkspace/
-**/*.xcuserdatad/
-**/*.xcscmblueprint
-**/*Scheme.xcscheme
-*.xccheckout
-
-# Xcode project user‐specific state
-**/*.xcuserstate
+**/xcuserdata/
+**/*.xcuserstate/
 
 # Swift Package Manager artifacts
 **/Package.resolved
@@ -41,9 +35,6 @@ db.sqlite-wal
 # Build products (redundant with /build/ & /.build/, but safe)
 **/Build/
 **/DerivedData/
-
-# Xcode “shared” scheme info (if you are not committing shared schemes)
-**/xcshareddata/
 
 # Cocoa/Carthage/etc. (if you ever pull in other deps)
 Carthage/Build/
